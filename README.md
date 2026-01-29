@@ -30,10 +30,19 @@ grep("字符", 向量名字, value = TRUE)# 这样取出来的就是真的值而
 
 # merge函数合并两个表格
 merge(表格1, 表格2, all = TRUE)# 合并两个表格并且保留所有信息，如果没有all = TRUE只会保留两个表格相同的行名的信息
+
 # lm函数进行线性回归
 lm_test <- lm(y ~ x, data = 数据集的名字)
 summary(lm_test)# 用summary查看简略信息
 plot(lm_test)# 查看诊断图
+
+# apply函数
+x <- matrix(1 : 6, ncol = 3)
+apply(x, 2, mean)# 2指的是第二个维度也就是列，这里是对列取平均值
+y <- c()
+for (i in 1 : 3)
+  {y[i] <- mean(x[,i])}# 和上边apply的结果是一样的
+colmeans(x)# 或者是这样也行
 
 # PCA分析
 iris_pca <- prcomp(iris[, 1:4], scale = TRUE)# pca分析
