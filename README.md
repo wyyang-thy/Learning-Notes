@@ -3,22 +3,22 @@ Record some of my learning processes.
 # 我的学习记录
 
 # 测序部分
-# 一般的测序仪只能测长度有限制的、两端处理过的DNA
-# 测序深度 = total read length/target genome length
-# 测序广度 = 1 - 1 / e^测序深度
-# 测序得到的fastQ文件可以做序列拼装、比对、注释
-# 拼装assembly：实际上是测序的逆过程，由大量碎片化的Reads还原回target genome的过程，因为拼装的结果并不能完全和目标基因组一样，会有一些间断，把这样的拼装结果叫做contigs，双端测序时可以把contigs锚定成scaffolds脚手架，N50值用来评价拼装的好坏
-# mapping/alignment序列比对：最重要的部分！把read比对到参考基因组上，但是由于测序错误、repeat片段故容易出错。cellranger
-# 注释annotation：从头注释，同源注释，依据RNA注释
-# chip-seq：研究与DNA结合的蛋白质
-# ATAC-Seq：研究染色体的开放和关闭情况
-# Hic：染色体在三维空间的构象
-# RNAseq矩阵：横轴是样品，纵轴是基因，数值是样品落到这个基因上的reads有多少
-# Microbiome矩阵：横轴是样品，纵轴是不同的微生物，数值是样品有多少来自该微生物
-# RNAseq分析：在服务器上用linux进行read mapping and counting→产生一个表达表→R上分析
-# 均一化CPM = count per million reads; FPKM = fragments per kilobase per million; RPKM = reads per kilobase per million;FPKM是RPKM的双端测序以read pair为单位计数的版本，per kilobase of transcripts
-# 质检很重要！！！比如FastQc这个软件有一个参数percentage mapped指的是数据中百分之多少的reads能正确比对到参考序列上
-# 油包水双端测序，read1主要来自barcode和UMI，有时会测到ployA和部分基因,read2主要来自基因，是从三端开始测的，所以又叫三端测序，一个珠子多个细胞的情况最不好，因为可能会导致误认为一个细胞既有T细胞的特征也有B细胞的特征
+#一般的测序仪只能测长度有限制的、两端处理过的DNA
+#测序深度 = total read length/target genome length
+#测序广度 = 1 - 1 / e^测序深度
+#测序得到的fastQ文件可以做序列拼装、比对、注释
+#拼装assembly：实际上是测序的逆过程，由大量碎片化的Reads还原回target genome的过程，因为拼装的结果并不能完全和目标基因组一样，会有一些间断，把这样的拼装结果叫做contigs，双端测序时可以把contigs锚定成scaffolds脚手架，N50值用来评价拼装的好坏
+#mapping/alignment序列比对：最重要的部分！把read比对到参考基因组上，但是由于测序错误、repeat片段故容易出错。cellranger
+#注释annotation：从头注释，同源注释，依据RNA注释
+#chip-seq：研究与DNA结合的蛋白质
+#ATAC-Seq：研究染色体的开放和关闭情况
+#Hic：染色体在三维空间的构象
+#RNAseq矩阵：横轴是样品，纵轴是基因，数值是样品落到这个基因上的reads有多少
+#Microbiome矩阵：横轴是样品，纵轴是不同的微生物，数值是样品有多少来自该微生物
+#RNAseq分析：在服务器上用linux进行read mapping and counting→产生一个表达表→R上分析
+#均一化CPM = count per million reads; FPKM = fragments per kilobase per million; RPKM = reads per kilobase per million;FPKM是RPKM的双端测序以read pair为单位计数的版本，per kilobase of transcripts
+#质检很重要！！！比如FastQc这个软件有一个参数percentage mapped指的是数据中百分之多少的reads能正确比对到参考序列上
+#油包水双端测序，read1主要来自barcode和UMI，有时会测到ployA和部分基因,read2主要来自基因，是从三端开始测的，所以又叫三端测序，一个珠子多个细胞的情况最不好，因为可能会导致误认为一个细胞既有T细胞的特征也有B细胞的特征
 
 
 # 代码部分
