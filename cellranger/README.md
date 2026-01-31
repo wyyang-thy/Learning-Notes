@@ -76,20 +76,20 @@ cd /lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/lamprey_refer
 cat /lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/share/lamprey/pmar_ref/GCF_010993605.1_kPetMar1.pri_genomic.gtf | grep -v "gene_id \"\"" > GCF_010993605.1_kPetMar1.pri_genomic.nonEmpty.gtf  
 
 ###指定只保留 protein_coding（蛋白编码基因）和 lncRNA（长链非编码 RNA）。并且把GCF_010993605.1_kPetMar1.pri_genomic.nonEmpty.gtf这个文件中的这些信息写入GCF_010993605.1_kPetMar1.pri_genomic.fil.gtf中
-cellranger mkgtf GCF_010993605.1_kPetMar1.pri_genomic.nonEmpty.gtf GCF_010993605.1_kPetMar1.pri_genomic.fil.gtf   
-  --attribute=gene_biotype:protein_coding 
+cellranger mkgtf GCF_010993605.1_kPetMar1.pri_genomic.nonEmpty.gtf GCF_010993605.1_kPetMar1.pri_genomic.fil.gtf \   
+  --attribute=gene_biotype:protein_coding \
   --attribute=gene_biotype:lncRNA
 
 ###删掉临时存储的文件GCF_010993605.1_kPetMar1.pri_genomic.nonEmpty.gtf
 rm -rf GCF_010993605.1_kPetMar1.pri_genomic.nonEmpty.gtf
 
-###构建参考基因组,会在当前目录下生成pmar_ref/文件夹(但是因为我使用了绝对路径，所以就不是当前目录，而是确定的/lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/lamprey_referencere)，这就是Cell Ranger需要的参考基因组。
+###构建参考基因组,会在当前目录下生成pmar_ref/文件夹，这就是Cell Ranger需要的参考基因组。
 cellranger mkref \
-  --genome=/lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/lamprey_reference/pmar_ref \#输出的参考基因组名称
-  --fasta=/lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/share/lamprey/pmar_ref/GCF_010993605.1_kPetMar1.pri_genomic.fna \#基因组序列文件（.fna）
-  --genes=/lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/share/lamprey/pmar_ref/GCF_010993605.1_kPetMar1.pri_genomic.fil.gtf \#基因注释文件（.gtf），是上一步处理过的
-  --nthreads=16 \#使用的线程数
-  --memgb=64#使用的内存（GB）
+  --genome=pmar_ref \  #输出的参考基因组名称，注意这个没法用绝对路径
+  --fasta=/lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/share/lamprey/pmar_ref/GCF_010993605.1_kPetMar1.pri_genomic.fna \  #基因组序列文件（.fna）
+  --genes=/lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/GCF_010993605.1_kPetMar1.pri_genomic.fil.gtf \  #基因注释文件（.gtf），是上一步处理过的
+  --nthreads=16 \  #使用的线程数
+  --memgb=64  #使用的内存（GB）
 
 ###接下来就是运行cellranger！！！！！
 cellranger count \
@@ -98,6 +98,6 @@ cellranger count \
   --fastqs=/lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/share/lamprey/lamprey_data_202212SC_pbmcNsb/raw1 \  #测序原始文件（FASTQ）所在的文件夹路径。
   --include-introns=true \  #将比对到内含子（Introns）区域的 Reads 也计入基因表达量。
   --nosecondary \  #跳过二级分析。Cell Ranger 默认会自动进行聚类（Clustering）和差异表达分析。但实际上我们后续会自己分析。
-  --disable-ui \  #禁用网页端的实时监控界面。由于在集群上运行，通常无法直接通过浏览器访问计算节点的 IP（就像你之前看到的那个 http://cas101... 链接）。禁用它可以减少一些不必要的网络开销。
+  --disable-ui \  #禁用网页端的实时监控界面。由于在集群上运行，通常无法直接通过浏览器访问计算节点的 IP（比如超算的这种http://cas101...链接）。禁用它可以减少一些不必要的网络开销。
   --localcores=16 \  #限制程序最多使用的 CPU 核心数为 16 个。
   --localmem=100  #限制程序最多使用的内存为 100GB。
