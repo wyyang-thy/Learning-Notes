@@ -1,2 +1,0 @@
-#真正能看到的barcode比理论的barcode要多得多，因为有很多barcode没有结合到细胞，会吸附游离的RNA，捕获的RNA特别少，在cellranger运行结束之后，算法会根据每个barcode对应的umi总数的多少从大到小，给barcode排序，排名第一的barcode它对应的umi总数最多。
-![image](https://github.com/wyyang-thy/Learning-Notes/blob/main/image.png)
