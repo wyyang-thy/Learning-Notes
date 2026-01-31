@@ -65,14 +65,15 @@ pmar_ref/
 │   └── ...
 └── reference.json         # 元数据
 
-#实际上这些操作是可以实现的，但是由于我没有权限对share文件夹下的东西做写入操作，所以这些我都没办法进行
+#实际上这些操作是可以实现的，但是必须在自己有权限的路径中操作，这时候必须从share文件夹中出来
 ###我建立了一个新的文件夹来存储参考基因组
 mkdir /lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/lamprey_reference
+cd /lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/lamprey_reference  #以下操作都在这个路径下进行嗷
 
 ###问题是gtf文件中的gene_id列会存在空格也就是gene_id ""这样的形式导致mkref没办法直接运行，所以需要删掉这些空白信息，而且在cellranger官网上也建议在mkref前先运行 mkgtf 预过滤
 ###需要找的是 gene_id ""。因为命令本身已经用了双引号包裹，为了让 Linux 明白中间那两个双引号也是我们要找的内容，所以加了转义符 \。这里路径都是一个，太长了就不写绝对路径了...
 ###grep中的-v参数：是 “反向选择（Invert-match）”。通常 grep 是找“包含某词的行”，加了 -v 之后，它会删掉包含某词的行，留下剩下的。所以这里是删掉包含空值的行，留下正常的。
-zcat /lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/share/lamprey/pmar_ref/GCF_010993605.1_kPetMar1.pri_genomic.gtf | grep -v "gene_id \"\""  > GCF_010993605.1_kPetMar1.pri_genomic.nonEmpty.gtf  
+cat /lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/share/lamprey/pmar_ref/GCF_010993605.1_kPetMar1.pri_genomic.gtf | grep -v "gene_id \"\"" > GCF_010993605.1_kPetMar1.pri_genomic.nonEmpty.gtf  
 
 ###指定只保留 protein_coding（蛋白编码基因）和 lncRNA（长链非编码 RNA）。并且把GCF_010993605.1_kPetMar1.pri_genomic.nonEmpty.gtf这个文件中的这些信息写入GCF_010993605.1_kPetMar1.pri_genomic.fil.gtf中
 cellranger mkgtf GCF_010993605.1_kPetMar1.pri_genomic.nonEmpty.gtf GCF_010993605.1_kPetMar1.pri_genomic.fil.gtf   
