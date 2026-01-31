@@ -1,5 +1,5 @@
 # cellranger学习记录
-# 这里记录我第一次跑Cellranger全流程，也会记录一些我新学习到的知识，我想应该和前边的杂合知识分开记录，另外，因为里边记载了太多字来帮助我理解，所以真正需要运行的代码以###来开头标注，而且为了方便我下次复习，全部使用绝对路径形式。
+## 这里记录我第一次跑Cellranger全流程，也会记录一些我新学习到的知识，我想应该和前边的杂合知识分开记录，另外，因为里边记载了太多字来帮助我理解，所以真正需要运行的代码以###来开头标注，而且为了方便我下次复习，全部使用绝对路径形式。
 
 ### 首先在集群上申请计算资源，不能在登陆节点上运行作业
 ```
@@ -10,16 +10,16 @@ srun -p cpu -n 64 --pty /bin/bash
 ```
 ln -s /lustre/home/acct-medcl/share /lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL
 ```
-# 语法：ln -s 原文件目录 目的文件目录
+## 语法：ln -s 原文件目录 目的文件目录
 
-# 记录一下10X illumina的下机数据是什么样的，
+## 记录一下10X illumina的下机数据是什么样的，
  - 首先是两个个fastq文件，
  - read1文件是barcode+UMI；
  - read2文件是5'端开始的序列信息。
  - 每个文件的第一行是文件名字，第二行是碱基序列，第三行记录是正义链（+）还是反义链（-），第四行记录的质量信息
 
 # 第一步：数据质量控制QC
-# 1.1 检查 FASTQ 文件完整性
+## 1.1 检查 FASTQ 文件完整性
 ### 检查文件是否完整（通过 md5 校验）
 ```
 md5sum -c md5sum.txt
@@ -32,7 +32,7 @@ ls -lh TF2212CLCL1X_S1_L003_R1_001.fastq.gz
 ```
 zcat TF2212CLCL1X_S1_L003_R1_001.fastq.gz | head -n 20
 ```
-# 1.2 使用 FastQC 进行质量评估
+## 1.2 使用 FastQC 进行质量评估
 ### 这里需要注意的是在集群上conda需要load不能直接用
 ```
 srun -p small -n 4 --pty /bin/bash
@@ -50,7 +50,7 @@ fastqc sample_R1.fastq.gz sample_R2.fastq.gz -o qc_results/
 ```
 #qc_results/sample_R1_fastqc.html
 ```
-# 1.3 使用 MultiQC 汇总多个样本
+## 1.3 使用 MultiQC 汇总多个样本
 ### 安装 MultiQC
 ```
 conda install -c bioconda multiqc
@@ -60,19 +60,19 @@ conda install -c bioconda multiqc
 multiqc qc_results/ -o multiqc_report/
 ```
 # 第二步：预处理，这一步才是比较重要的！！！！！复习时可以直接从这一步看起！！！！！
-# 2.1 10x Genomics 数据：使用 Cell Ranger
-# Cell Ranger 是 10x 官方工具，功能包括：比对到参考基因组；细胞条形码识别（区分真实细胞和空液滴）；UMI 去重（分子计数）；生成表达矩阵
+## 2.1 10x Genomics 数据：使用 Cell Ranger
+## Cell Ranger 是 10x 官方工具，功能包括：比对到参考基因组；细胞条形码识别（区分真实细胞和空液滴）；UMI 去重（分子计数）；生成表达矩阵
 
 ### 加载cellranger工具，需要使用什么工具但是发现不能直接使用的时候直接去hpc studio手册里查，一般都有。
 ```
 module load cellranger/7.2.0
 ```
-# /lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/share/lamprey/pmar_ref这个路径下存放了GCF_010993605.1_kPetMar1.pri_genomic.fna和 GCF_010993605.1_kPetMar1.pri_genomic.gtf这两个文件
-# 首先需要知道fasta文件是什么，这个基因组参考序列是经由reads拼装组成的染色体和线粒体序列，其中以>开头的是染色体/线粒体的名字，其后是对应的序列。相当于一本书的正文内容。
-# 对应的gtf文件是存储基因注释信息的文本格式，其中包含每个基因在染色体上的位置；每个基因包含哪些外显子（exon）；基因的起始和终止位置；基因名称、ID 等信息。相当于一本书的目录。
-# head -n 50 GCF_010993605.1_kPetMar1.pri_genomic.fna以及head -n 50 GCF_010993605.1_kPetMar1.pri_genomic.gtf可以进行查看其中的内容
-# 这两个文件是原始的、人类可读的文本文件，cellranger不能直接使用这些原始文件，它需要序列快速对比索引，预处理的基因注释，特定的目录结构和文件格式，所以需要构建参考基因组，使用cellranger mkref这个命令。
-# 这个命令使用 STAR 软件建立基因组索引，这样比对时可以快速找到序列匹配位置，然后解析 GTF 文件，提取外显子（exon）信息，建立基因ID到基因名的映射，过滤无效的注释，最后创建 Cell Ranger 专用的目录结构，类似于：
+### /lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/share/lamprey/pmar_ref这个路径下存放了GCF_010993605.1_kPetMar1.pri_genomic.fna和 GCF_010993605.1_kPetMar1.pri_genomic.gtf这两个文件
+### 首先需要知道fasta文件是什么，这个基因组参考序列是经由reads拼装组成的染色体和线粒体序列，其中以>开头的是染色体/线粒体的名字，其后是对应的序列。相当于一本书的正文内容。
+### 对应的gtf文件是存储基因注释信息的文本格式，其中包含每个基因在染色体上的位置；每个基因包含哪些外显子（exon）；基因的起始和终止位置；基因名称、ID 等信息。相当于一本书的目录。
+### head -n 50 GCF_010993605.1_kPetMar1.pri_genomic.fna以及head -n 50 GCF_010993605.1_kPetMar1.pri_genomic.gtf可以进行查看其中的内容
+### 这两个文件是原始的、人类可读的文本文件，cellranger不能直接使用这些原始文件，它需要序列快速对比索引，预处理的基因注释，特定的目录结构和文件格式，所以需要构建参考基因组，使用cellranger mkref这个命令。
+### 这个命令使用 STAR 软件建立基因组索引，这样比对时可以快速找到序列匹配位置，然后解析 GTF 文件，提取外显子（exon）信息，建立基因ID到基因名的映射，过滤无效的注释，最后创建 Cell Ranger 专用的目录结构，类似于：
 ```
 pmar_ref/
 ├── fasta/
@@ -85,7 +85,7 @@ pmar_ref/
 │   └── ...
 └── reference.json         # 元数据
 ```
-# 实际上这些操作是可以实现的，但是必须在自己有权限的路径中操作，这时候必须从share文件夹中出来
+## 实际上这些操作是可以实现的，但是必须在自己有权限的路径中操作，这时候必须从share文件夹中出来
 ### 我建立了一个新的文件夹来存储参考基因组
 ```
 mkdir /lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/lamprey_reference
