@@ -20,6 +20,13 @@ Record some of my learning processes.
 #质检很重要！！！比如FastQc这个软件有一个参数percentage mapped指的是数据中百分之多少的reads能正确比对到参考序列上
 #油包水双端测序，read1主要来自barcode和UMI，有时会测到ployA和部分基因,read2主要来自基因，是从三端开始测的，所以又叫三端测序，一个珠子多个细胞的情况最不好，因为可能会导致误认为一个细胞既有T细胞的特征也有B细胞的特征
 
+# cellranger结果图学习记录
+#以下边这图为例来记录一下cellranger结果图怎么看，真正能看到的barcode比理论的barcode要多得多，因为有很多barcode没有结合到细胞，会吸附游离的RNA，捕获的RNA特别少。
+#1、在cellranger运行结束之后，算法会根据每个barcode对应的umi总数的多少从大到小，给barcode排序，排名第一的barcode它对应的umi总数最多。
+#2、排序之后给barcode的序号以及对应的umi总数做对数处理，x轴是barcode的排名对数，y轴是umi的数量对数，但实际上递增或递减这个现象是一致的，并没有因为取对数而发生改变，不过需要注意的是越靠近x轴左侧的barcode对应的umi数越多。
+#3、理想的情况下会出现两到三个平台，第一个平台一般是质量好的细胞得到的结果。有很多时候barcode在测序时会出错，但这种情况下对应的umi数极少，会出现一个小平台。但因为前边说的实际读出的barcode会比结合到细胞的barcode多，所以第二个平台一般是空的barcode结合的环境中的RNA。
+#4、另外，由于是经过对数处理的结果，在图中虽然看着第一个平台比后两个平台在x轴的方向上要宽，但实际上第三个小平台数量＞第二个平台＞第一个平台的数量，因为x轴越往右数值越大，经过指数还原后倍数更是会增加。所以实际上捕获到真实细胞并且测序未出错的才是小部分。
+![image](https://github.com/wyyang-thy/Learning-Notes/blob/main/image.png)
 
 # 代码部分
 # 从github上安装R软件包
