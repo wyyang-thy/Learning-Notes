@@ -94,7 +94,7 @@ cellranger mkref \
 ###接下来就是运行cellranger！！！！！
 cellranger count \
   --id=pbmc \  #Cell Ranger 会在当前目录下创建一个名为 pbmc 的文件夹，所有的中间文件和最终结果（如 web_summary.html、表达矩阵等）都会存放在这个文件夹里。
-  --transcriptome=/lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/share/lamprey/pmar_ref \  #指定参考基因组索引的路径。
+  --transcriptome=/lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/pmar_ref \  #指定参考基因组索引的路径。
   --fastqs=/lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/share/lamprey/lamprey_data_202212SC_pbmcNsb/raw1 \  #测序原始文件（FASTQ）所在的文件夹路径。
   --include-introns=true \  #将比对到内含子（Introns）区域的 Reads 也计入基因表达量。
   --nosecondary \  #跳过二级分析。Cell Ranger 默认会自动进行聚类（Clustering）和差异表达分析。但实际上我们后续会自己分析。
