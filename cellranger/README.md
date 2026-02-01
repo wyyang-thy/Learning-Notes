@@ -128,3 +128,40 @@ cellranger count \
   --localcores=16 \  #限制程序最多使用的 CPU 核心数为 16 个。
   --localmem=100  #限制程序最多使用的内存为 100GB。
 ```
+### 似乎在申请的计算资源里没有办法长时间运行这个，所以我写了一个脚本，使用sbatch提交作业放到集群后台进行运行
+### 但是要注意在此之前需要重新申请计算资源和加载cellranger，这两个命令都不能写在这个脚本里
+```
+#!/bin/bash
+#SBATCH --job-name=lamprey_count
+#SBATCH --partition=cpu
+#SBATCH --output=res_%j.log
+#SBATCH --error=err_%j.log
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=16
+#SBATCH --mem=100G
+#SBATCH --time=24:00:00
+
+# 运行 Cell Ranger
+cellranger count --id=pbmc \
+  --transcriptome=/lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/pmar_ref \
+  --fastqs=/lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/share/lamprey/lamprey_data_202212SC_pbmcNsb/raw1 \
+  --include-introns=true \
+  --nosecondary \
+  --disable-ui \
+  --localcores=16 \
+  --localmem=100
+```
+### 随后运行这个脚本
+```
+sbatch run_pbmc.sh
+```
+### 通过下列命令来查看脚本是否在运行或者有什么问题
+```
+squeue -u wyyang2025
+
+# tail -f res_任务编号.log
+tail -f res_55500232.log
+
+# 如果发现错误需要修改则需要通过这个命令“scancel 任务编号”进行取消，但注意取消之后需要重新申请资源和加载工具
+scancel 55500232
+```
