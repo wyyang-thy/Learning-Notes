@@ -17,7 +17,7 @@ cell_type_name <- str_remove(f, "_normal_vs_disordered\\.rds")# # f 是文件名
 ```
 
 ### map_dfr函数，purrr包中的函数，可以看作是两个函数来用，首先是map函数，它可以将一群文件逐个传入一个函数中进行处理，处理之后由dfr函数合并成大的数据框，dfr指的是dataframe row bind
-# map函数会将files逐个传入函数function中处理，每个传入的文件都是f，这里是一个隐形函数，因为并没有定义一个实际的名字，用完即结束，最后返回一个列表
+### map函数会将files逐个传入函数function中处理，每个传入的文件都是f，这里是一个隐形函数，因为并没有定义一个实际的名字，用完即结束，最后返回一个列表
 ```
 all_deg_df <- map_dfr(files, function(f) {
   
