@@ -169,4 +169,29 @@ scancel 55500232
 ### scp 用户名@服务器地址:服务器文件绝对路径 本地保存路径，用这个命令把html文件传送到本地查看
 ```
 scp wyyang@pilogin.hpc.sjtu.edu.cn:/lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/cellranger_output/pbmc/outs/web_summary.html ./
+scp -r wyyang@pilogin.hpc.sjtu.edu.cn:/lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/cellranger_output/pbmc/outs ./# 传一个文件夹时需要加上-r表示递归
 ```
+### cellranger的流程大致是这样的
+```
+FASTQ 原始数据
+    ↓
+1. 细胞条形码识别（哪些是真实细胞）
+2. UMI 去重（同一分子的多次测序只计数一次）
+3. 比对到参考基因组（reads 来自哪个基因）
+4. 统计表达量（每个细胞每个基因有多少分子）
+    ↓
+输出多种格式的结果
+```
+### 得到的结果中比较重要的是：一个存放着表达矩阵的文件夹，以及possorted_genome_bam.bam和possorted_genome_bam.bam.bai这是比对后的原始数据文件。它详细记录了每一条测序 Reads 比对到七鳃鳗基因组的具体位置。后续可以用IGV查看比对情况。
+```
+filtered_feature_bc_matrix/
+├── barcodes.tsv.gz    # 细胞条形码列表，细胞的名字，行名
+├── features.tsv.gz    # 基因列表，基因的名字，列名
+└── matrix.mtx.gz      # 表达矩阵，每个细胞中有多少转录本
+```
+### 可以用samtools简单看一下bam文件
+```
+module load samtools/1.16.1-gcc-8.5.0# 先加载这个工具
+samtools view possorted_genome_bam.bam | head -n 5# 内容太多了可以先看这几行检查一下
+```
+### cellranger过程到这里就结束啦！！！！！完结撒花！！！！❀❀❀❀❀
