@@ -165,3 +165,8 @@ tail -f res_55500232.log
 # 如果发现错误需要修改则需要通过这个命令“scancel 任务编号”进行取消，但注意取消之后需要重新申请资源和加载工具
 scancel 55500232
 ```
+### 最终结果是运行成功了，运行约五个小时。
+### scp 用户名@服务器地址:服务器文件绝对路径 本地保存路径，用这个命令把html文件传送到本地查看
+```
+scp wyyang@pilogin.hpc.sjtu.edu.cn:/lustre/home/acct-medcl/wyyang2025/workspace/share_by_teacherCL/cellranger_output/pbmc/outs/web_summary.html ./
+```
