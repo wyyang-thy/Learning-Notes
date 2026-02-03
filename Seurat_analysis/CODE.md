@@ -140,10 +140,3 @@ if(!dir.exists("output")){
 
 saveRDS(pbmc, file = "output/pbmc_tutorial.rds")
 ```
-
-## 9. Session Info
-记录运行环境，方便复现。
-
-```{r session_info}
-sessionInfo()
-```
