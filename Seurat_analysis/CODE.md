@@ -114,7 +114,7 @@ pbmc <- RunUMAP(pbmc, reduction = "pca", dims = 1:20)
 
 ```{r cluster}
 # FindNeighbors: 在高维空间里给每个细胞找邻居
-# 如果想要按照上一步的小tips做的话，需要把reduction改为umap，dims改为1:2，但是这么做的话只是利用了二维的数据信息，相比于使用pca来说会丢失18维的信息
+# 如果想要按照上一步的小tips做的话，需要把reduction改为umap，dims改为1:2，但是这么做的话只是利用了二维的数据信息，相比于使用pca来说会丢失18维的信息，也比较容易理解，在二维上聚类就比较容易把细胞群分的比较开，在高维上聚类肯定就容易混杂。
 * **聚类是基于 PCA 降维（前 20 个主成分）进行的，以保留高维生物学距离。UMAP 投影上的轻微群落混合反映了连续的生物学转变，而非技术假象。**
 pbmc <- FindNeighbors(pbmc, reduction = "pca", dims = 1:20)
 
