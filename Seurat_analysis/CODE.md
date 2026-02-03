@@ -106,9 +106,6 @@ UMAP 的核心逻辑：保证在 20 维空间里靠得近的细胞，在 2 维�
 
 ```{r umap}
 pbmc <- RunUMAP(pbmc, dims = 1:20)
-
-# 可视化聚类结果
-DimPlot(pbmc, reduction = "umap", label = TRUE)
 ```
 
 ## 7. 细胞聚类 (Clustering)
@@ -121,10 +118,14 @@ pbmc <- FindNeighbors(pbmc, dims = 1:20)
 
 # FindClusters: 切分“朋友圈”
 # resolution 参数控制分群的粗细：值越大，群越多越细
+# 小tips：先把群分多一点，把有差异的细胞群先展示出来，随后再根据marker进行合并相似的细胞群。
 pbmc <- FindClusters(pbmc, resolution = 0.5)
 
 # 查看前 5 个细胞的 Cluster ID
 head(Idents(pbmc), 5)
+
+# 可视化聚类结果
+DimPlot(pbmc, reduction = "umap", label = TRUE)
 ```
 
 ## 8. 保存结果
