@@ -105,7 +105,7 @@ UMAP 的核心逻辑：保证在 20 维空间里靠得近的细胞，在 2 维�
 * **这里其实是有一个小巧思在的，因为seurat官网上的步骤实际上是先PCA然后马上细胞聚类，随后再进行非线性降维，这样会导致某些簇的点会混在一起，导致不consistent，但是如果先降维再聚类就会比较干净！！！**
 
 ```{r umap}
-pbmc <- RunUMAP(pbmc, dims = 1:20)
+pbmc <- RunUMAP(pbmc, reduction = "pca", dims = 1:20)
 ```
 
 ## 7. 细胞聚类 (Clustering)
@@ -114,12 +114,14 @@ pbmc <- RunUMAP(pbmc, dims = 1:20)
 
 ```{r cluster}
 # FindNeighbors: 在高维空间里给每个细胞找邻居
-pbmc <- FindNeighbors(pbmc, dims = 1:20)
+# 如果想要按照上一步的小tips做的话，需要把reduction改为umap，dims改为1:2，但是这么做的话只是利用了二维的数据信息，相比于使用pca来说会丢失18维的信息
+* **聚类是基于 PCA 降维（前 20 个主成分）进行的，以保留高维生物学距离。UMAP 投影上的轻微群落混合反映了连续的生物学转变，而非技术假象。**
+pbmc <- FindNeighbors(pbmc, reduction = "pca", dims = 1:20)
 
 # FindClusters: 切分“朋友圈”
 # resolution 参数控制分群的粗细：值越大，群越多越细
 # 小tips：先把群分多一点，把有差异的细胞群先展示出来，随后再根据marker进行合并相似的细胞群。
-pbmc <- FindClusters(pbmc, resolution = 0.5)
+pbmc <- FindClusters(pbmc, resolution = 0.6)
 
 # 查看前 5 个细胞的 Cluster ID
 head(Idents(pbmc), 5)
