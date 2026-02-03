@@ -140,3 +140,6 @@ if(!dir.exists("output")){
 
 saveRDS(pbmc, file = "output/pbmc_tutorial.rds")
 ```
+首先cellranger的标准是一万细胞左右，但是这个实际得到的细胞是两万多，所以这里会有很多doublet
+另外，如果说一个细胞个头很小则说明它的UMI很少
+所以我想有必要记录一下cellranger结果的代表意义，其中一行代表一个基因，一列代表一个细胞，对应的数值是去重后的UMI值也就是原始的mRNA数量，表示这个基因在这个细胞中有多少转录本，所以UMI值在一定意义上是可以代表细胞大小的。
