@@ -2,7 +2,7 @@
 title: "Seurat PBMC Analysis Pipeline Learning"
 author: "wyyang"
 date: "2026-02-02"
-output: html_document
+output: RDS
 ---
 
 ```{r setup, include=FALSE}
