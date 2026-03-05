@@ -126,3 +126,27 @@ Arthritis
 tapply(Arthritis$Improved, Arthritis$Treatment, table)# 对于两个都是分类变量就不能用数值运算，可以用table等计量运算
 tapply(Arthritis$Age, Arthritis$Treatment, mean)
 ```
+
+### 列表是一个多维向量
+```
+a <- 1:10
+b <- c("apple", "banana", "cherry")
+c <- list(name = "John", age = 30, city = "New York")
+d <- data.frame(id = 1:5, value = c(10, 20, 30, 40, 50))# 数据框定义的时候可以在前边指定列名比如id和value
+alist <- list(A = a, B = b, C = c, D = d)# 在形成列表时也可以给每一个元素设置名字
+alist[1]# 取出的是一个列表，是list
+alist[[1]]# 取出的是元素本身，是numric
+```
+
+### 处理缺失值
+```
+library(VIM)
+sleep
+# 第一种方法，删除含有缺失值的行
+omit_sleep <- na.omit(sleep)
+# 第二种方法，使用均值填充缺失值
+mean_sleep <- sleep
+mean_sleep$extra[is.na(mean_sleep$extra)] <- mean(mean_sleep$extra, na.rm = TRUE)# 使用这一列中非缺失值的均值填补这一列中的缺失值
+# KNN填充缺失值
+knn_sleep <- kNN(sleep, variable = "extra", k = 5)# extra这一列中用knn进行插值
+```
