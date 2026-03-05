@@ -44,3 +44,14 @@ attach(women)
 height# 可以单独作为向量取出
 plot(x = weight, y = height, pch = 19, col = "red", type = "b")
 ```
+### 条形图的上下左右的距离可以通过par函数来进行调整，mar = c(下x标签, 左y标签, 上主标题, 右)
+```
+barplot(state.area, names.arg = state.abb, las = 2, col = "blue")
+par("mar")
+
+# 增大底部边距，防止标签被截断
+par(mar = c(8, 4.1, 4.1, 2.1))
+
+# 其中density指的是条形图中的斜线数量，angle是斜线的角度，horiz默认是FALSE也就是竖着展示，也可以改成横着展示，也需要通过mar来调整边界
+barplot(state.area, names.arg = state.abb, las = 2, col = "blue", density = 15, angle = 45, horiz = FALSE)
+```
