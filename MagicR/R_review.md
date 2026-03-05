@@ -31,7 +31,16 @@ t.test(x, y)
 summary(rivers)
 ```
 
-### plot()函数画散点图，可以根据pch参数选择不同的点形状，一共18种类型，颜色使用col参数
+### plot()函数画散点图，可以根据pch参数选择不同的点形状，一共18种类型，颜色使用col参数，类型type是画的类型p是点，l是线，b是点和线都画，xlim和ylim是决定从什么坐标开始画图
 ```
-plot(0 : 18, pch = c(0 : 18), col = "red", xlab = "横轴", ylab = "纵轴", main = "主标题", sub = "子标题")
+plot(0 : 18, pch = c(0 : 18), col = "red", type = "p", xlab = "横轴", ylab = "纵轴", main = "主标题", sub = "子标题", xlim = c(1, 100), ylim = c(0, 100))
+```
+
+### attach()函数可以将数据框中的每一列单独取出变成向量，和数据框$列名的作用一致
+```
+data(women)# 数据框
+women$height
+attach(women)
+height# 可以单独作为向量取出
+plot(x = weight, y = height, pch = 19, col = "red", type = "b")
 ```
