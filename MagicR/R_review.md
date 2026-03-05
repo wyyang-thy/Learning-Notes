@@ -150,3 +150,48 @@ mean_sleep$extra[is.na(mean_sleep$extra)] <- mean(mean_sleep$extra, na.rm = TRUE
 # KNN填充缺失值
 knn_sleep <- kNN(sleep, variable = "extra", k = 5)# extra这一列中用knn进行插值
 ```
+
+### 排序的两种方式，sort()是直接对于数值进行排序，order()对于索引进行排序（其实也是对数值进行排序，展示的是最小的数值对应的索引到最大的数值对应的索引），在二维数据中行排序常用order函数
+
+### subset()函数筛选数据，注意判断相等时使用==
+```
+# subset(x(数据框), subset(行筛选条件（逻辑表达式), select(列选择（指定保留哪些列）))
+a_mtcars <- subset(mtcars, cyl ==6)
+a_mtcars <- mtcars[mtcars$cyl ==6, ]
+```
+
+### sample(向量，抽样数目，replace = T)函数随机抽样，replace代表是否有放回的抽样
+```
+x <- 1 : 10
+sample(x, size = 5)# 一维
+# 扑克牌
+# 生成一副扑克牌
+# 花色
+type <- c("red", "spades", "cube", "plum")
+# 数值
+amount <- c("A", 1 : 10, "J", "Q", "K")
+poker <- paste(rep(type, each = 13), amount, sep = "")
+length(poker)
+poker[c(53, 54)] <- c("red joker", "black joker")
+poker
+# 洗牌
+set.seed(1234)
+shuffle <- sample(poker, 54, replace = FALSE)# 一维
+# 底牌
+dipai <- shuffle[c(52, 53, 54)]
+# 分牌
+one <- shuffle[1 : 51][c(T, F, F)]
+two <- shuffle[1 : 51][c(F, T, F)]
+three <- shuffle[1 : 51][c(F, F, T)]
+one
+shuffle
+
+# 二维数据随机抽样，需要先计算行数，根据行数随机抽样得到行索引，根据行索引得到该行
+sleep[sample(1:nrow(sleep), size = 5, replace = FALSE), ]
+
+# 划分训练集和测试集，7：3的比例
+set.seed(123) # 设置随机种子以确保结果可重复
+train_index <- sample(1:nrow(sleep), size = 0.7 * nrow(sleep), replace = FALSE)
+train_data <- sleep[train_index, ]
+test_data <- sleep[-train_index, ]# 直接-索引，代表去掉这些索引
+```
