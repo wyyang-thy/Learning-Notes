@@ -195,3 +195,54 @@ train_index <- sample(1:nrow(sleep), size = 0.7 * nrow(sleep), replace = FALSE)
 train_data <- sleep[train_index, ]
 test_data <- sleep[-train_index, ]# 直接-索引，代表去掉这些索引
 ```
+## tidyverse以及dplyr的使用
+### tibble也就是原来基础R里的数据框，但它不支持行名，而且它取出一列还是tibble
+```
+library(tidyverse)
+library(dplyr)
+
+# slice()函数筛选行
+iris <- iris |> slice(1 : 3)# 筛选前三行
+
+# select()函数筛选行
+iris <- iris |> select(1 : 3)# 筛选前三列
+iris <- iris |> select_all(toupper)# 把所有行都转换成大写字母
+iris <- iris |> select_at(vars(-contains ("ar"), starts_with("c")),toupper)# 把不包括ar的列并且以c开头的列换成大写
+
+# pull()函数筛选行但是返回向量
+iris <- iris |> pull(1 : 3)# 筛选前三列
+
+# add_row()和add_column()函数增加行列
+df |> add_column(new = 1:10)# 新列的名字是newid
+
+# mutate()函数比较重要啊！！！也是增加一列
+mtcars %>% mutate(cyl2 = cyl * 2)# cyl2是新列的名字
+
+# rename()函数修改列名
+mtcars %>% rename(cyl2 = cyl)
+
+# arrange()函数默认升序，还可以使用两列进行排序
+mtcars  %>% arrange(desc(cyl, mpg))
+
+# 去除重复，basrR中是unique()函数，现在是distinct()函数
+mtcars %>% distinct(cyl, .keep_all = TRUE)# 只对这一列处理，其他列保留
+
+#filter()函数，默认是and关系，对列的值进行过滤筛选，select函数是根据列名进行筛选
+mtcars %>% filter(cyl == 4 | cyl == 6)  %>% relocate(mpg, .after = cyl)# 把mpg放在cyl这一列的后边
+mtcars %>% filter(duplicated(x, y))# 把xy值相等的行保留下来
+
+# summarise()函数相当于summary()函数汇总数据
+mtcars %>% summarise(mean(mpg))
+
+# group_by()函数进行分组，但是必须是因子
+mtcars %>% group_by(cyl)
+
+# count()函数相当于table()函数计算频数
+mtcars %>% group_by(cyl) %>% count()
+
+# left_join(x,y)将y并入x，right_join(x,y)将x并入y，inner_join()保留相同的行，full_join()全部保留，intersection()交集，union()并集
+
+# sample_n根据数量进行抽样，sample_frac()根据比例进行抽样
+
+# tidyverse中的stringr这个包是专门用于处理字符串的包
+```
