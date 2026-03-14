@@ -116,7 +116,7 @@ groupdel hr
 # -g设定用户的基本组，-G设定用户的附加组也就是加入另外一个用户的分组
 # /etc/passwd可以查看用户的基本组，/etc/group可以查看用户的附加组，id也可查看附加组
 
-useradd AAA
+useradd AAA  # useradd AAA -G hr  或者建立的时候就直接给一个附加组
 useradd BBB
 useradd CCC
 grep AAA /etc/passwd  # AAA:x:1000:1000::/home/AAA:/bin/sh
@@ -164,7 +164,7 @@ echo "haha $name is a fool"
 chmod +x file1
 bash file1  # 或者直接./file1也是运行
 
-# 对于文件夹也同样适用，但是文件夹必须有执行权限不然进不去
+# 对于文件夹也同样适用，但是文件夹必须有执行权限不然进不去，对文件夹的一般操作不会影响文件夹下的权限，但是如果对于文件夹的操作带了递归选项-R文件夹包括文件夹下的所有文件权限都会改变!!!!!!!
 # 修改一个文件的组：chown 用户名.组名 文件名
 groupadd hr
 useradd user0  # 每个用户都有自己的基本组，所以user0也有一个名为user0的基本组
@@ -173,6 +173,22 @@ chown user0 1.txt  # 只改用户
 chown .hr 1.txt  # 只改组
 # chgrp只能修改所属组
 chgrp user0 1.txt
+
+# 但是如果三个用户以及两个组对这个文件的权限分别都不同，上边的命令就不能满足了，因为上边的是只能对一个用户或一个组进行操作，这时候需要ACL(access control list访问控制列表)来定义谁可以做什么
+setfacl -m g:hr:rwx 1.txt  # 设置文件访问控制列表 -设置make 组：组名：权限 文件名
+setfacl -m o::rwx 1.txt  # 这个是给文件的other其他用户加权限
+getfacl 1.txt  # 查看文件有什么acl权限
+# 输出显示：
+  # file: 1.txt
+  # owner: user0
+  # group: user0
+  user::rwx
+  group::rwx
+  other::rwx
+
+setfacl -x g:hr 1.txt  # 删除hr的acl权限，另外如果使用acl对于文件进行权限操作的话-rwxrwxrwx+会有一个+显示
+setfacl -b 1.txt  # 删除所有的acl权限
+setfacl -d 1.txt  # 回到设置acl之前的样子
 ```
 
 ## 进程管理
