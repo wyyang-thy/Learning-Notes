@@ -83,6 +83,7 @@ N  # 查询的字符向上移动
 ```
 root:x:0:0:root:/root:/bin/bash  # 用户名：密码占位符：用户id：组id：描述：家目录，登陆时所在的目录：登录shell，命令解释器（定义、接收、解释命令）
 
+# 以下的命令都是在root用户下进行的，如果是普通用户都得加一个sudo
 # 添加一个新的用户test01
 useradd test01
 # 因为普通用户的id是从1000开始命名的，所以在添加新的用户的时候还可以指定它的用户id
@@ -124,7 +125,7 @@ grep CCC /etc/passwd  # CCC:x:1002:1002::/home/CCC:/bin/sh
 # 修改AAA的基本组为CCC
 usermod AAA -g CCC
 grep AAA /etc/passwd  # AAA:x:1000:1002::/home/AAA:/bin/sh
-# 修改CCC为BBB的附加组
+# 修改CCC为BBB的附加组，也就是BBB加入CCC组
 usermod BBB -G CCC
 grep BBB /etc/passwd  # BBB:x:1001:1001::/home/BBB:/bin/sh
 grep BBB /etc/group  # BBB:x:1001:; CCC:x:1002:BBB（这个意思是CCC的基本组是BBB也就是说是BBB加入了CCC组）
@@ -139,4 +140,52 @@ groupadd DDD
 grep DDD /etc/group  # DDD:x:1003:
 groupmod -g 1004 DDD
 grep DDD /etc/group  # DDD:x:1004:
+```
+
+## 用户的权限
+```
+# 授权r=4、w=2、x=1
+chmod u+r 1.txt  # 给这个文件的用户读的权限
+chmod g-r 1.txt  # 不给这个文件的同组用户读的权限
+chmod u=rwx 1.txt  # 给这个文件的用户读、写、执行的权限
+chmod -R u+r ./aa/  # 给这个文件夹的用户读的权限
+chmod a=rx 1.txt  # a是all包括user、group和other，这是给所有人rx权限
+chmod +x file1  # 不指定就所有都加x
+chmod ug=rx,o=r 1.txt  # 相当于chmod 554 1.txt
+# 如果要看文件夹./workspace的权限要加-d
+ls -lhd ./workspace
+
+vim file1
+# 在文件中写入这些话
+echo "hello"
+read -p "please input your name:" name  # read核心命令。等用户输入一点东西，按回车结束。-p参数 (Prompt)。意思是“提示”。如果没有它，屏幕会一片漆黑，用户不知道该干嘛。name变量名。用户输入的内容会被“装”进这个叫 name 的变量里。
+echo "haha $name is a fool"
+# 给权限并执行文件
+chmod +x file1
+bash file1  # 或者直接./file1也是运行
+
+# 对于文件夹也同样适用，但是文件夹必须有执行权限不然进不去
+# 修改一个文件的组：chown 用户名.组名 文件名
+groupadd hr
+useradd user0  # 每个用户都有自己的基本组，所以user0也有一个名为user0的基本组
+chown user0.hr 1.txt  # -rwxrwxrwx 1 user0 hr    936 Mar 13 15:04 1.txt
+chown user0 1.txt  # 只改用户
+chown .hr 1.txt  # 只改组
+# chgrp只能修改所属组
+chgrp user0 1.txt
+```
+
+## 进程管理
+```
+
+```
+
+## 管道和重定向
+```
+
+```
+
+## 磁盘管理
+```
+
 ```
