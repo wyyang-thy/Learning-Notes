@@ -99,4 +99,44 @@ su - test01
 whoami
 # 删除用户
 userdel -r test01  # -r是家目录一起删掉
+# 修改用户属性
+usermod -s /sbin/nologin user01   # -s的意思是shell
+# 查看修改
+tail -1 /etc/passwd  # passwd和shadow存储的都是用户信息，而不是组信息，但是会存有基本组的gid，所以下边的group信息不在这里，输出user01:x:1000:1000::/home/user01:/sbin/nologin，现在这个用户没办法登录shell了
+
+# 添加hr组
+groupadd hr
+# 查找信息
+cat /etc/group
+grep hr /etc/group  # 查询相关信息
+# 删除hr组
+groupdel hr
+# 组分基本组和附加组，这是相对于用户来说的，基本组会随用户的创建而随之建立且名字和用户一致，比如张三如果加入李四的组中，那么张三会得到一个名为李四的附加组，张三还有一个名为张三的基本组。并且一个用户可以加入多个组，也就是说可以有多个附加组。
+# -g设定用户的基本组，-G设定用户的附加组也就是加入另外一个用户的分组
+# /etc/passwd可以查看用户的基本组，/etc/group可以查看用户的附加组，id也可查看附加组
+
+useradd AAA
+useradd BBB
+useradd CCC
+grep AAA /etc/passwd  # AAA:x:1000:1000::/home/AAA:/bin/sh
+grep BBB /etc/passwd  # BBB:x:1001:1001::/home/BBB:/bin/sh
+grep CCC /etc/passwd  # CCC:x:1002:1002::/home/CCC:/bin/sh
+# 修改AAA的基本组为CCC
+usermod AAA -g CCC
+grep AAA /etc/passwd  # AAA:x:1000:1002::/home/AAA:/bin/sh
+# 修改CCC为BBB的附加组
+usermod BBB -G CCC
+grep BBB /etc/passwd  # BBB:x:1001:1001::/home/BBB:/bin/sh
+grep BBB /etc/group  # BBB:x:1001:; CCC:x:1002:BBB（这个意思是CCC的基本组是BBB也就是说是BBB加入了CCC组）
+# 现在CCC组中有AAA和BBB两个新成员
+id AAA  # uid=1000(AAA) gid=1002(CCC) groups=1002(CCC)
+id BBB  # uid=1001(BBB) gid=1001(BBB) groups=1001(BBB),1002(CCC)
+# 把组员A从组中删除gpasswd -d A GROUP，但是不能从基本组中删除，只能从附加组中删除
+gpasswd -d BBB CCC  # Removing user BBB from group CCC
+id BBB  # uid=1001(BBB) gid=1001(BBB) groups=1001(BBB)
+
+groupadd DDD
+grep DDD /etc/group  # DDD:x:1003:
+groupmod -g 1004 DDD
+grep DDD /etc/group  # DDD:x:1004:
 ```
