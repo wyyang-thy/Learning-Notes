@@ -260,15 +260,38 @@ kill %1  # 消灭后台作业号为1的作业，后台就没有这个作业了
 
 ## 虚拟文件系统
 ```
-
+cat /proc/cpuinfo  # 看硬件信息
+cat /proc/meminfo  # 看内存信息
+cat /proc/cmdline  # 看内核信息
 ```
 
 ## 管道和重定向
 ```
+# 重定向>是覆盖，>>是追加，只有能够在终端页面上能够输出的东西才能够使用重定向！！！这两个命令相当于1>和1>>只会把正确信息放到后边的文件中，同理2>和2>>只会输出错误的信息到文件中
+ls /aaaa &> /dev/null  # 这是这条命令最常用的地方，&意思是1和2也就是正确错误都输出到null中，也就是垃圾桶中，不在终端显示任何信息
+ls /aaaa > 1.txt 2> 2.txt  # 把正确和错误分开放
+# 输入重定向<
+vim word.txt  # 在这个文件中写入一封邮件
+mail -s "test01" alice < word.txt  # -s参数代表Subject（主题）。这里设置的主题是 "test01"。把文件中的内容当作邮件发送，否则会在终端上输入很多文字
+su - alice  # 切换到alice用户
+mail  # 查看邮件
 
+# pipe管道,|是管道符，也就是会把左边命令的输出作为右边命令的输入
+cat /etc/passwd | tail -3 | grep 'user'
+# tee管道除了pipe的作用还会增加另外一个方向，会把一个命令输出的结果存到另外一个文档中
+cat /etc/passwd | tee file88.txt | tail -3 | grep 'user'  # 该有的|还是得有，只不过在中间加一个tee命令存上一步的输出
+
+# cp和rm是不能用在管道中的，这是这两个命令的规则，但是如果在命令前加上xargs进行参数传递那么就可以使用
+mkdir file1 file2 file3  # 在当前目录下建立这三个文件
+echo /root/file1 >> test.txt
+echo /root/file2 >> test.txt  # 把这三个文件的路径全部写入文件中
+echo /root/file3 >> test.txt
+cat test.txt | xargs rm -rvf  # 删除这三个文件
 ```
 
 ## 磁盘管理
 ```
 
+# 软连接
+ln -s 2.txt 333  # 把文件2.txt连接到333中去，但是文件删除333将无法访问
 ```
