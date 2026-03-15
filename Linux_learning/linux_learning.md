@@ -189,6 +189,21 @@ getfacl 1.txt  # 查看文件有什么acl权限
 setfacl -x g:hr 1.txt  # 删除hr的acl权限，另外如果使用acl对于文件进行权限操作的话-rwxrwxrwx+会有一个+显示
 setfacl -b 1.txt  # 删除所有的acl权限
 setfacl -d 1.txt  # 回到设置acl之前的样子
+
+# suid是针对文件所设置的一个特殊的权限，使得调用文件的用户临时具备属主的能力，但是这个权限需要谨慎使用
+# 假如在root下有一个文件file1.txt，那么除了用户属主，组中的用户以及其他用户是没有查看这个文件的权限的
+chmod u+s /root/file1.txt  # 如果给这个文件加上一个suid的权限，那么所有的用户都能查看这个文件，这个文件也将会变成-rwsr-xr-x，注意user的权限是rws，注意这里是小写s，是因为之前这个位置有x，如果没有x那么将会变成S大写的S
+
+# i权限赋予一个文件连超管也无法更改、重命名、删除的能力
+chattr +i file1.txt
+lsattr file1.txt  # 列出属性
+chattr -i file1.txt  # 去掉这个属性
+chattr +a file1.txt  # 增加一个只能追加的权限，vim不行，只能追加
+echo 111 >> file1.txt  # 在屏幕上能打印的东西都能追加进文件，echo相当于print
+
+# umask进程掩码，会对新建立的文件和文件夹产生影响，用于去除权限，创建新文件夹的时候是用0777-0022也就是0755所以新建的文件权限都是rwxr-xr-x，创建新文件的时候是0755-0111也就是644也就是去掉了新文件所有执行的权限
+umask  # 0022，掩码是四位数，之前chmod的时候修改都是后三位，第一位是给suid权限，比如4777那么就是rwsrwxrwx，2777就是rwxrwsrwx，1777就是rwxrwxrwt，0777就是rwxrwxrwx
+chmod 4777 file1.txt
 ```
 
 ## 进程管理
