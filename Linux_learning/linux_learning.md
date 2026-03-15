@@ -287,6 +287,20 @@ echo /root/file1 >> test.txt
 echo /root/file2 >> test.txt  # 把这三个文件的路径全部写入文件中
 echo /root/file3 >> test.txt
 cat test.txt | xargs rm -rvf  # 删除这三个文件
+
+cat /etc/passwd | grep 'AAA'  # AAA:x:1000:1002::/home/AAA:/bin/sh
+cat /etc/passwd | grep 'AAA' | cut -d: -f1  # AAA。其中cut命令d是根据:切开，保留f选项后第1位的结果
+```
+```
+# 这句话的逻辑是EOF之间的内容交给cat查看之后追加到这个文件中EOF是end of file，它就像一个括号的左半部分，告诉系统：直到我再次输入 EOF 为止，中间所有的内容都算作文件内容。也可以用 STOP、HELLO 或任何单词代替 EOF，只要开头和结尾一致即可。
+cat > ./test.txt <<EOF
+111111111111
+222222222222
+333333333333
+444444444444
+555555555555
+EOF
+cat test.txt  # 发现存放的是上边那些数字
 ```
 
 ## 磁盘管理
