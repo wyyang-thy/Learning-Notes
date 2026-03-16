@@ -358,4 +358,11 @@ tar -czvf etc.tar.gz /etc  # c是create是创造一个压缩包的意思，z是g
 tar -xzvf archive.tar.gz -C /target/directory  # -C是解压到指定目录下directory，z是gizp解压，x是解压extract，f是文件名，解压时会直接释放原来的文件，不能指定解压后的文件名字，这个需要注意
 ```
 
+## 补充
+```
+# 统计文件/目录大小
+du -sh ./workspace  # 查看目录总大小（s=summary, h=human readable）
+du -sh *  # 查看当前目录下每个文件/目录的大小
+```
+
 ## 完结撒花！！！！！！
