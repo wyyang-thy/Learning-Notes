@@ -281,7 +281,7 @@ cat /etc/passwd | tail -3 | grep 'user'
 # tee管道除了pipe的作用还会增加另外一个方向，会把一个命令输出的结果存到另外一个文档中
 cat /etc/passwd | tee file88.txt | tail -3 | grep 'user'  # 该有的|还是得有，只不过在中间加一个tee命令存上一步的输出
 
-# cp和rm是不能用在管道中的，这是这两个命令的规则，但是如果在命令前加上xargs进行参数传递那么就可以使用
+# cp和rm是不能用在管道中的！！！！这是这两个命令的规则，但是如果在命令前加上xargs进行参数传递那么就可以使用
 mkdir file1 file2 file3  # 在当前目录下建立这三个文件
 echo /root/file1 >> test.txt
 echo /root/file2 >> test.txt  # 把这三个文件的路径全部写入文件中
@@ -303,9 +303,59 @@ EOF
 cat test.txt  # 发现存放的是上边那些数字
 ```
 
-## 磁盘管理
+## 磁盘管理，这一部分我根本就没学，我感觉这一部分我基本用不到
 ```
-
+# 查看有多少硬盘文件，会显示类似于brw-rw----，最开始的b是block也就是硬盘
+ls -lh /dev/sd*
+# 查看硬盘容量
+lsblk
 # 软连接
 ln -s 2.txt 333  # 把文件2.txt连接到333中去，但是文件删除333将无法访问
 ```
+
+## 文件查找
+```
+# which查找命令的绝对路径，后边直接加命令名字就好
+which ls  # /usr/bin/ls
+# whereis和which作用一样
+whereis ls
+
+# find针对文件名进行文件查找，这个比较常用
+# 按照名字查找
+find /root/workspace -name '1.txt'  # 输出/root/workspace/1.txt，find 路径 选项 描述 动作
+find /root/workspace -iname '1*.txt'  # -iname这个选项可以找到更多东西，比如说以1开头的所有文件的路径
+# 按照文件大小查找
+find /etc/ -size +5k  # 这个路径下文件大于5k的文件的绝对路径都会打印出来
+find /etc/ -size -5M  # 这个路径下文件小于5M的文件的绝对路径都会打印出来
+# 按照指定查找的目录深度查找
+find / -maxdepth 3 -a -name ifcfg-en*  # 在根目录下按照最大三级目录进行查找以ifcfg-en开头的所有文件，其中-a是and的意思，其实可以省略
+# 按照用户属主查找
+find /home -user alice
+# 按照用户属组查找
+find /home -group hr
+# 按文件类型查找
+find /dev -type f  # f是看这个目录下所有普通文件，普通文件是以-开头的
+find /dev -type d  # 这个是文件夹，文件夹以d开头的
+ls -lhd ./worspace  # 看文件夹要加选项d
+# 按文件权限
+find ./ -perm 644 -ls  # 找到644权限的文件以长格式显示也就是ls，在这里是动作，在描述之后，默认是-print
+find ./ -perm 644 -delete  # 也可以删除啊把这些文件
+find /etc/ -name ifcfg* -ok cp -rvf {} /tmp \; # 这个命令很牛啊，在找到这些文件之后-ok加一个新的命令，-ok是连接符也是逐个确认，进行复制到/tmp下，{}代表的是源文件路径，代表引用前边的内容，必须有源文件路径和目的路径，\;是结束符必须要加
+
+# locate依赖数据库进行文件查找
+locate 1.txt
+```
+
+## 文件打包和压缩
+```
+# tar 选项 压缩包名称 源文件，选项中有个-f一定要有因为是filname所以必须有
+ls -lh /etc/ | wc -l  # wc是word count是数数的意思，-l是统计行数，w是统计文字
+# 压缩czvf！！！！！！！
+# 可以把z换成j或J，这三个的压缩体积依次降低啊，压缩后J最小，但是z最常用
+tar -czvf etc.tar.gz /etc  # c是create是创造一个压缩包的意思，z是gzip的意思，f是filename的意思，也就是压缩包的名字是etc.tar.gz，v是可视化这个过程，有提示信息，这个czvf顺序别变啊
+# 解压xzvf！！！！！！！！！！
+# zvf可以记成祝福zhufu，x是解压就可以了
+tar -xzvf archive.tar.gz -C /target/directory  # -C是解压到指定目录下directory，z是gizp解压，x是解压extract，f是文件名，解压时会直接释放原来的文件，不能指定解压后的文件名字，这个需要注意
+```
+
+## 完结撒花！！！！！！
