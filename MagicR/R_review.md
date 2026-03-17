@@ -246,5 +246,5 @@ mtcars %>% group_by(cyl) %>% count()
 
 # tidyverse中的stringr这个包是专门用于处理字符串的包
 ```
-![image][https://github.com/wyyang-thy/Learning-Notes/blob/main/MagicR/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20260305211727_567_8.png]
-![image][https://github.com/wyyang-thy/Learning-Notes/blob/main/MagicR/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20260305211727_568_8.png]
+![image](https://github.com/wyyang-thy/Learning-Notes/blob/main/MagicR/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20260305211727_567_8.png)
+![image](https://github.com/wyyang-thy/Learning-Notes/blob/main/MagicR/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20260305211727_568_8.png)
