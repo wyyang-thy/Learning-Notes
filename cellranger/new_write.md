@@ -127,3 +127,8 @@ squeue -j 57962096
 ## /lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/pmar_ref_v2这个路径下存放的是原始的新下载的参考基因组以及mkref的脚本
 ## /lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/work_pmar_ref_v2这个路径是这一次做的新的参考基因组的工作路径
 ## /lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/work_pmar_ref_v2/pmar_ref_v2_ref这个路径下存放的是这一次处理好的参考基因组，这一次是可以使用的
+
+## 一个新的命令，可以查看系统配额
+```
+lfs quota -h -p 2610 /lustre
+```
