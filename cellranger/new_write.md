@@ -130,5 +130,8 @@ squeue -j 57962096
 
 ## 一个新的命令，可以查看系统配额
 ```
+# 先查看是什么pid
+lfs project -d /lustre/home/acct-medcl/wyyang2025/workspace/Accuramed20260228
+# pid是2610
 lfs quota -h -p 2610 /lustre
 ```
