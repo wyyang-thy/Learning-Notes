@@ -135,12 +135,13 @@ echo "========================================="
 ### 加入了一个新的参数也就是--multi-mapper=EM，允许多重匹配，并且gemini建议我采用比对内含子
 ```
 #!/bin/bash
-#SBATCH --job-name=20260113-V1-5_EM
+#SBATCH --job-name=20260113-V4-5-t2tref_EM
 #SBATCH --partition=cpu
-#SBATCH --output=res_EM_%j.log
-#SBATCH --error=err_EM_%j.log
+#SBATCH --output=res_T2T_EM_%j.log
+#SBATCH --error=err_T2T_EM_%j.log
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=16
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
 #SBATCH --mem=100G
 #SBATCH --time=7-00:00:00
 
@@ -152,22 +153,23 @@ CELLRANGER_HOME=/lustre/home/acct-medcl/wyyang2025/software/cellranger-10.0.0
 export PATH="$CELLRANGER_HOME/bin:$PATH"
 export TENX_IGNORE_DEPRECATED_OS=1
 
-REF=/lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/work_pmar_ref_v2/pmar_ref_v2_ref
-FASTQ_DIR=/lustre/home/acct-medcl/wyyang2025/workspace/Accuramed20260228/raw_data/20260113-V1-5
+# 你的 T2T 参考基因组路径
+REF=/lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/t2t/lamprey_t2t_v1
+FASTQ_DIR=/lustre/home/acct-medcl/wyyang2025/workspace/Accuramed20260228/raw_data/20260113-V4-5
 OUT_BASE=/lustre/home/acct-medcl/wyyang2025/workspace/Accuramed20260228/cellranger_by_myself
-SAMPLE=20260113-V1-5
+SAMPLE=20260113-V4-5
 
 CORES=16
-MEM=100
+MEM=90
 
 mkdir -p "$OUT_BASE"
 cd "$OUT_BASE" || exit 1
 
 echo "Cell Ranger: $(cellranger --version)"
 
-# 🚀 运行加入 EM 算法的多重比对拯救版本
+# 🚀 运行终极调优版：完美融合 T2T 基因组 + 内含子拯救 + EM多重比对分流
 cellranger count \
-  --id="CR10_EM_$SAMPLE" \
+  --id="CR10_T2T_EM_$SAMPLE" \
   --transcriptome="$REF" \
   --fastqs="$FASTQ_DIR" \
   --sample="$SAMPLE" \
