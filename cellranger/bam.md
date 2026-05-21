@@ -130,3 +130,5 @@ echo "========================================="
 echo "Job finished successfully at: $(date)"
 echo "========================================="
 ```
+## 利好消息：这些unmapped的序列能够通过blast比对上t2t参考基因组，只是因为一条序列会比对到参考基因组的多个不同地方，不是唯一的比对，在cellranger里边为了保持唯一性会把这些多重比对的序列算作unmapped
+## 接下来我可以通过调节cellranger参数或者使用star来进行新的mapping
