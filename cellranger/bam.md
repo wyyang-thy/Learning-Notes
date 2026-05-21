@@ -132,13 +132,27 @@ echo "========================================="
 ```
 ## 利好消息：这些unmapped的序列能够通过blast比对上t2t参考基因组，只是因为一条序列会比对到参考基因组的多个不同地方，不是唯一的比对，在cellranger里边为了保持唯一性会把这些多重比对的序列算作unmapped
 ## 接下来我可以通过调节cellranger参数或者使用star来进行新的mapping
-### 加入了一个新的参数也就是--multi-mapper=EM，允许多重匹配，并且gemini建议我采用比对内含子
+### 加入了一个新的参数也就是--multi-mapper=EM，允许多重匹配，并且gemini建议我采用比对内含子，实际使用上不行，10.0.0的cellranger并没有这个参数
+### 我现在的实际情况是有相当一部分的序列并没有比对到参考基因组上，我把没有比对到参考基因组上的序列去ncbi上做blast，超过60%的序列都是核糖体基因序列，于是我用这些未必对的序列跟t2t参考基因组做blast，基本上每一条未必对序列都能够匹配到参考基因组上的多个位置包括手脚架和正式的染色体序列，这也有可能是被cellranger列为unmapped的原因，而且比如比对到chr80的序列实际上在gtf上的注释是非常完善的，于是gemini建议我使用cellranger multi
 ```
+vim multi_config.csv
+[gene-expression]
+reference,/lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/t2t/lamprey_t2t_v1
+include-introns,true
+create-bam,true
+
+[libraries]
+fastq_id,fastqs,feature_types
+20260113-V4-5,/lustre/home/acct-medcl/wyyang2025/workspace/Accuramed20260228/raw_data/20260113-V4-5,Gene Expression
+```
+### 脚本
+```
+vim run_multi.sh
 #!/bin/bash
-#SBATCH --job-name=20260113-V4-5-t2tref_EM
+#SBATCH --job-name=20260113-V4-5-T2T_MultiMode
 #SBATCH --partition=cpu
-#SBATCH --output=res_T2T_EM_%j.log
-#SBATCH --error=err_T2T_EM_%j.log
+#SBATCH --output=res_multi_%j.log
+#SBATCH --error=err_multi_%j.log
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
@@ -153,31 +167,18 @@ CELLRANGER_HOME=/lustre/home/acct-medcl/wyyang2025/software/cellranger-10.0.0
 export PATH="$CELLRANGER_HOME/bin:$PATH"
 export TENX_IGNORE_DEPRECATED_OS=1
 
-# 你的 T2T 参考基因组路径
-REF=/lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/t2t/lamprey_t2t_v1
-FASTQ_DIR=/lustre/home/acct-medcl/wyyang2025/workspace/Accuramed20260228/raw_data/20260113-V4-5
 OUT_BASE=/lustre/home/acct-medcl/wyyang2025/workspace/Accuramed20260228/cellranger_by_myself
-SAMPLE=20260113-V4-5
-
-CORES=16
-MEM=90
 
 mkdir -p "$OUT_BASE"
 cd "$OUT_BASE" || exit 1
 
-echo "Cell Ranger: $(cellranger --version)"
+echo "Cell Ranger Multi Version: $(cellranger --version)"
 
-# 🚀 运行终极调优版：完美融合 T2T 基因组 + 内含子拯救 + EM多重比对分流
-cellranger count \
-  --id="CR10_T2T_EM_$SAMPLE" \
-  --transcriptome="$REF" \
-  --fastqs="$FASTQ_DIR" \
-  --sample="$SAMPLE" \
-  --include-introns=true \
-  --multi-mapper=EM \
-  --create-bam=true \
-  --nosecondary \
-  --disable-ui \
-  --localcores="$CORES" \
-  --localmem="$MEM"
+# 🚀 启动官方高级多组学/多重比对分流拯救模式
+cellranger multi \
+  --id="CR10_T2T_MultiMode_V4-5" \
+  --csv="./multi_config.csv" \
+  --localcores=16 \
+  --localmem=90
 ```
+
