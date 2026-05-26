@@ -265,4 +265,10 @@ $MY_STAR --genomeDir "$INDEX" \
   --outFileNamePrefix "$OUT_BASE/starsolo_"
 ```
 ### 唯一比对率53.37%，多重比对11.09%，所以大概有64%能比对到参考基因组上，未比对（序列太短）24.47%，但是问题是它无法正确识别barcode，而且相对于cellranger来说匹配到参考基因组上的比率并没有提高很多，仅仅提高了3%
+```
+# 先把这个巨大的sam文件转成bam文件然后我要删掉这个sam
+srun -p cpu -n 64 --pty /bin/bash
+module load bwa samtools
+samtools view -S -b starsolo_Aligned.out.sam > starsolo_Aligned.out.bam
+```
 ## 于是我决定采纳gemini的建议使用multi的结果，用scTE去识别bam文件中的转座子
