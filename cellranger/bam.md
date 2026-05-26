@@ -271,4 +271,11 @@ srun -p cpu -n 64 --pty /bin/bash
 module load bwa samtools
 samtools view -S -b starsolo_Aligned.out.sam > starsolo_Aligned.out.bam
 ```
-## 于是我决定采纳gemini的建议使用multi的结果，用scTE去识别bam文件中的转座子
+## 于是我决定采纳gemini的建议使用multi的结果，用scTE去识别bam文件中的转座子，采纳不了，我没有转座子的bed格式文件...
+```
+# 使用预先建立好的conda环境下载scTE工具
+module load miniconda3
+source activate /lustre/opt/condaenv/life_sci
+conda list
+pip install scTE --user
+```
