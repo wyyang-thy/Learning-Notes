@@ -181,4 +181,88 @@ cellranger multi \
   --localcores=16 \
   --localmem=90
 ```
+## 结果是相对于cellranger count有轻微的提高，原来能准确匹配到转录组上的比对率大概30%，使用multi之后提高到了36%，比对到参考基因组上有61%，我觉得还是比较低所以使用了star进行比对
+### 先建立索引
+```
+#!/bin/bash
+#SBATCH --job-name=lamprey_star_index_v11
+#SBATCH --partition=cpu
+#SBATCH -N 1
+#SBATCH --ntasks-per-node=40
+#SBATCH --exclusive
+#SBATCH --output=index_new_%j.out
+#SBATCH --error=index_new_%j.err
 
+set -euo pipefail
+
+# 🎯 注入你刚刚纯手工验证成功的绝对路径
+MY_STAR=/lustre/home/acct-medcl/wyyang2025/software/starr/STAR-2.7.11b/bin/Linux_x86_64_static/STAR
+
+FASTA=/lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/t2t/lamprey_t2t_v1/fasta/genome.fa
+GTF=/lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/t2t/lamprey.final.pasa.gtf
+
+# 建立一个全新的高版本索引目录
+OUT_DIR=/lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/t2t/star_index_v11
+mkdir -p "$OUT_DIR"
+
+echo "Using Hand-made STAR Version: $($MY_STAR --version)"
+
+# 🚀 40核独占火力全开，十几分钟即可冲完
+$MY_STAR --runMode genomeGenerate \
+  --genomeDir "$OUT_DIR" \
+  --genomeFastaFiles "$FASTA" \
+  --sjdbGTFfile "$GTF" \
+  --sjdbOverhang 149 \
+  --genomeSAindexNbases 12 \
+  --runThreadN 40
+```
+### 进行比对
+```
+#!/bin/bash
+#SBATCH --job-name=GeneMind_STARsolo
+#SBATCH --partition=cpu
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=120G
+#SBATCH --time=3-00:00:00
+
+set -euo pipefail
+
+# 🎯 锁定你纯手工最新版的独立物理路径
+MY_STAR=/lustre/home/acct-medcl/wyyang2025/software/starr/STAR-2.7.11b/bin/Linux_x86_64_static/STAR
+
+INDEX=/lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/t2t/star_index_v11
+FASTQ_DIR=/lustre/home/acct-medcl/wyyang2025/workspace/Accuramed20260228/raw_data/20260113-V4-5
+OUT_BASE=/lustre/home/acct-medcl/wyyang2025/workspace/Accuramed20260228/starsolo_output
+
+R2_FILES=$(ls $FASTQ_DIR/*_R2_*.fastq.gz | tr '\n' ',' | sed 's/,$//')
+R1_FILES=$(ls $FASTQ_DIR/*_R1_*.fastq.gz | tr '\n' ',' | sed 's/,$//')
+
+# 🎯 核心修正：换回你最初就写对的那个解压好的 737K 白名单！
+WHITELIST=/lustre/home/acct-medcl/wyyang2025/software/cellranger-10.0.0/lib/python/cellranger/barcodes/737K-august-2016.txt
+
+mkdir -p "$OUT_BASE"
+cd "$OUT_BASE" || exit 1
+
+echo "Running Authenticated STAR version: $($MY_STAR --version)"
+echo "Starting STARsolo alignment for GeneMind PE150 Library..."
+
+# 🚀 全力冲刺：精准物理坐标硬切真迈 Read 1，全面激活 EM 算法拯救 chr80
+$MY_STAR --genomeDir "$INDEX" \
+  --readFilesIn "$R2_FILES" "$R1_FILES" \
+  --readFilesCommand zcat \
+  --runThreadN 16 \
+  --soloType CB_UMI_Simple \
+  --soloCBwhitelist "$WHITELIST" \
+  --soloCBstart 1 --soloCBlen 16 \
+  --soloUMIstart 17 --soloUMIlen 12 \
+  --soloBarcodeReadLength 0 \
+  --soloCBmatchWLtype 1MM_multi \
+  --soloFeatures Gene GeneFull \
+  --soloMultiMappers EM \
+  --outFilterMultimapNmax 100 \
+  --outFileNamePrefix "$OUT_BASE/starsolo_"
+```
+### 唯一比对率53.37%，多重比对11.09%，所以大概有64%能比对到参考基因组上，未比对（序列太短）24.47%，但是问题是它无法正确识别barcode，而且相对于cellranger来说匹配到参考基因组上的比率并没有提高很多，仅仅提高了3%
+## 于是我决定采纳gemini的建议使用multi的结果，用scTE去识别bam文件中的转座子
