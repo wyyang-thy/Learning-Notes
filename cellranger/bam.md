@@ -279,3 +279,21 @@ source activate /lustre/opt/condaenv/life_sci
 conda list
 pip install scTE --user
 ```
+## 新方法
+```
+# 下载扫描重复序列的软件red
+cd /lustre/home/acct-medcl/wyyang2025/software
+wget https://github.com/BioinformaticsToolsmith/Red/archive/refs/heads/master.zip
+unzip master.zip
+cd /lustre/home/acct-medcl/wyyang2025/software/repetbed/Red-master/src_2.0
+sed -i 's/g++-8/g++/g' Makefile
+make clean
+mkdir -p ../bin ../bin/exception ../bin/ms ../bin/nonltr ../bin/test ../bin/utility ../bin/tr
+make
+cd ..
+mkdir -p genome_dir output_dir
+# 把T2T的基因组建立一个软连接
+ln -s /lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/t2t/lamprey_t2t_v1/fasta/genome.fa genome_dir/
+# 开始扫描重复序列
+./bin/Red -gnm genome_dir -msk output_dir
+```
