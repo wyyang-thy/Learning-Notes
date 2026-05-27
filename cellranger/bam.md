@@ -277,7 +277,10 @@ samtools view -S -b starsolo_Aligned.out.sam > starsolo_Aligned.out.bam
 module load miniconda3
 source activate /lustre/opt/condaenv/life_sci
 conda list
-pip install scTE --user
+cd /lustre/home/acct-medcl/wyyang2025/software
+git clone https://github.com/JiekaiLab/scTE.git
+cd scTE
+python setup.py install --user
 ```
 ## 新方法
 ```
@@ -296,4 +299,15 @@ mkdir -p genome_dir output_dir
 ln -s /lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/t2t/lamprey_t2t_v1/fasta/genome.fa genome_dir/
 # 开始扫描重复序列
 ./bin/Red -gnm genome_dir -msk output_dir
+./bin/Red -gnm genome_dir -rpt output_dir -frm 2
+cat output_dir/*.bed | awk '{print $1"\t"$2"\t"$3"\tLamprey_Repeat\t.\t+"}' > /lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/t2t/lamprey_repeats.bed
+# 检查
+head -n 5 /lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/t2t/lamprey_repeats.bed
+# 确保系统能找到scTE命令
+export PATH="/lustre/home/acct-medcl/wyyang2025/.local/bin:$PATH"
+cd /lustre/home/acct-medcl/wyyang2025/workspace/cellranger_reference/t2t/
+sed -i "s/'rU'/'r'/g" /lustre/home/acct-medcl/wyyang2025/.local/lib/python3.12/site-packages/scTE-1.0-py3.12.egg/EGG-INFO/scripts/scTE*
+sed -i 's/"rU"/"r"/g' /lustre/home/acct-medcl/wyyang2025/.local/lib/python3.12/site-packages/scTE-1.0-py3.12.egg/EGG-INFO/scripts/scTE*
+/lustre/home/acct-medcl/wyyang2025/.local/bin/scTE_build -te lamprey_repeats.bed -gene lamprey.final.pasa.gtf -g other -o lamprey_t2t
 ```
+### 这个失败了，不整了
