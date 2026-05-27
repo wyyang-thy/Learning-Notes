@@ -277,12 +277,12 @@ samtools view -S -b starsolo_Aligned.out.sam > starsolo_Aligned.out.bam
 grep -i -E "ribosom|rRNA|RPL|RPS" lamprey.final.pasa.gtf | head -n 20
 grep -v "^#" lamprey.final.pasa.gtf | awk '{print $3}' | sort | uniq -c
 # 以下是结果
-467294 CDS
-492591 exon
-  46680 five_prime_UTR
-  25179 gene
-  37849 three_prime_UTR
-  41212 transcript
+# 编码序列 467294 CDS
+# 外显子 492591 exon
+# 5'非翻译区  46680 five_prime_UTR
+# 基因  25179 gene
+# 3'非翻译区  37849 three_prime_UTR
+# 转录本  41212 transcript
 ```
 ## 于是我决定采纳gemini的建议使用multi的结果，用scTE去识别bam文件中的转座子，采纳不了，我没有转座子的bed格式文件...
 ```
