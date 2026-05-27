@@ -271,6 +271,19 @@ srun -p cpu -n 64 --pty /bin/bash
 module load bwa samtools
 samtools view -S -b starsolo_Aligned.out.sam > starsolo_Aligned.out.bam
 ```
+## 我去检查了gtf注释文件中是不是有核糖体基因注释，结果发现里面只有基因在染色体上的起止坐标，没有任何基因功能、名称或分类注释，没有核糖体基因
+```
+# 其中i表示支持大小写，E表示支持正则表达式匹配多个值
+grep -i -E "ribosom|rRNA|RPL|RPS" lamprey.final.pasa.gtf | head -n 20
+grep -v "^#" lamprey.final.pasa.gtf | awk '{print $3}' | sort | uniq -c
+# 以下是结果
+467294 CDS
+492591 exon
+  46680 five_prime_UTR
+  25179 gene
+  37849 three_prime_UTR
+  41212 transcript
+```
 ## 于是我决定采纳gemini的建议使用multi的结果，用scTE去识别bam文件中的转座子，采纳不了，我没有转座子的bed格式文件...
 ```
 # 使用预先建立好的conda环境下载scTE工具
