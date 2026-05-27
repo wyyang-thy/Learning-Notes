@@ -275,6 +275,7 @@ samtools view -S -b starsolo_Aligned.out.sam > starsolo_Aligned.out.bam
 ```
 # 其中i表示支持大小写，E表示支持正则表达式匹配多个值
 grep -i -E "ribosom|rRNA|RPL|RPS" lamprey.final.pasa.gtf | head -n 20
+# awk '{print $3}'这个是把第三列打印到屏幕上
 grep -v "^#" lamprey.final.pasa.gtf | awk '{print $3}' | sort | uniq -c
 # 以下是结果
 # 编码序列 467294 CDS
