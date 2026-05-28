@@ -9,4 +9,5 @@ source ~/.bashrc
 opencode --version
 opencode
 # ctrl c可以退出
+/connect连接了deepseek V4 pro 速度为max的大模型
 ```
