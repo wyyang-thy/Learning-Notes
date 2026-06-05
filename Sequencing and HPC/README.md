@@ -31,3 +31,29 @@ tmux attach -t transport
 # 彻底关闭 transport 会话
 tmux kill-session -t transport
 ```
+#### 另外，尝试从本地把数据传送到超算冷存储上
+```
+# 在 WSL 中创建一个挂载点（文件夹）
+sudo mkdir -p /mnt/f
+# 将 F 盘挂载到这个目录
+sudo mount -t drvfs F: /mnt/f
+# 这样我就能用cd /mnt/f访问这个移动硬盘了
+
+# 在拔出物理硬盘前，记得先在 WSL 里解除挂载：
+sudo umount -l /mnt/f
+
+# 开一个隐藏入口
+screen -dmS transt2t
+screen -r transt2t
+# 直接传送到冷存储下
+scp -r /mnt/f/T2T_rawdata wyyang2025@data.hpc.sjtu.edu.cn:/union/home/acct-medcl/wyyang2025/workspace/
+# 为了支持断点续传，我还是用了rsync
+rsync -avrPH --copy-unsafe-links /mnt/f/T2T_rawdata wyyang2025@data.hpc.sjtu.edu.cn:/union/home/acct-medcl/wyyang2025/workspace/
+# ctrl a d一起按就退出隐藏窗口
+
+# 但是我不可能一直开着电脑，所以我决定用实验室的服务器传一下试试
+# 服务器的/mnt下有一个文件夹就是挂在硬盘的我就不新建了，结果是我没有权限，让师兄帮我挂载在tmpdata4上边，tmpdata3里边存储的是20260228-Accuramed，可以用这个直接传到硬盘里了
+sudo mount -t drvfs F:/mnt/portable
+# 依旧是开一个screen
+rsync -avrPH --copy-unsafe-links /tmpdata4/T2T_rawdata wyyang2025@data.hpc.sjtu.edu.cn:/union/home/acct-medcl/wyyang2025/workspace/
+```
