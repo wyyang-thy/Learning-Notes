@@ -11,3 +11,23 @@ opencode
 # ctrl c可以退出
 /connect连接了deepseek V4 pro 速度为max的大模型
 ```
+#### 从pi节点向冷存储传送数据记录
+```
+# 先登录pi的数据传送节点，一般登录的是登录节点ssh wyyang2025@pilogin.hpc.sjtu.edu.cn但是大量传送数据的时候会被系统kill掉。
+ssh wyyang2025@data.hpc.sjtu.edu.cn
+
+# 使用tmux会话传送，开启一个名字为transport的会话
+tmux new -s transport
+
+# 使用rsync传送，这个兼顾了软硬链接，把结果传送到了union下的workspace节点下/union/home/acct-medcl/wyyang2025/workspace/，得先建立一个文件夹workspace才能这样
+rsync -avrPH --copy-unsafe-links /lustre/home/acct-medcl/wyyang2025/workspace/Accuramed20260228 $UNION/workspace/
+
+# 可以在data节点cd到union路径下进行修改文件夹什么的命令，但是不能在登陆节点有这些操作
+# ctrl b撒开按d就可以离开传送会话窗口
+
+# 回到名为 transport 会话
+tmux attach -t transport
+
+# 彻底关闭 transport 会话
+tmux kill-session -t transport
+```
