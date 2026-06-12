@@ -57,3 +57,18 @@ sudo mount -t drvfs F:/mnt/portable
 # 依旧是开一个screen
 rsync -avrPH --copy-unsafe-links /tmpdata4/T2T_rawdata wyyang2025@data.hpc.sjtu.edu.cn:/union/home/acct-medcl/wyyang2025/workspace/
 ```
+#### 我尝试把医院服务器上的T2T建立软链接到我的wsl上使用claude code进行拼装基因组，需要注意的是仍然需要连接服务器Wifi才能访问软链接
+```
+# 安装 sshfs
+sudo apt install sshfs
+
+# 创建挂载点
+mkdir -p ~/mnt/server
+
+# 挂载远程目录
+sshfs YangWenyan@192.168.8.4:/tmpdata3/T2T_rawdata ~/mnt/server
+
+# 建立软链接
+ln -s ~/mnt/server /home/wyyang/workspace/T2T
+# lrwxrwxrwx 1 wyyang wyyang 23 Jun 12 11:51 server -> /home/wyyang/mnt/server,不过后来我给server改名成T2Tonrenji了
+```
