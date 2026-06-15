@@ -75,3 +75,8 @@ ln -s ~/mnt/server /home/wyyang/workspace/T2T
 #### claude code小tips
 ##### 原来在不同的目录下打开claude那次的会话就会存入相应的目录下，/resume的时候是找不到在其他目录的会话的
 ##### cd ~/workspace/T2T比如在这个目录下打开的calude这次会话只在这个目录下才能找到
+```
+vim ~/.bashrc
+alias opencode='/home/vin/.opencode/bin/opencode'# 因为我没有安装opencode权限所以我只能把这个目录改个名字存在我这
+source ~/.bashrc# 刷新起效
+```
