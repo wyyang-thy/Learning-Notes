@@ -57,7 +57,7 @@ sudo mount -t drvfs F:/mnt/portable
 # 依旧是开一个screen
 rsync -avrPH --copy-unsafe-links /tmpdata4/T2T_rawdata wyyang2025@data.hpc.sjtu.edu.cn:/union/home/acct-medcl/wyyang2025/workspace/
 ```
-#### 我尝试把医院服务器上的T2T建立软链接到我的wsl上使用claude code进行拼装基因组，需要注意的是仍然需要连接服务器Wifi才能访问软链接
+#### 我尝试把医院服务器上的T2T建立软链接到我的wsl上使用claude code进行拼装基因组，需要注意的是仍然需要连接服务器Wifi才能访问软链接而且每次连接网络的时候都需要重新挂
 ```
 # 安装 sshfs
 sudo apt install sshfs
@@ -72,3 +72,6 @@ sshfs YangWenyan@192.168.8.4:/tmpdata3/T2T_rawdata ~/mnt/server
 ln -s ~/mnt/server /home/wyyang/workspace/T2T
 # lrwxrwxrwx 1 wyyang wyyang 23 Jun 12 11:51 server -> /home/wyyang/mnt/server,不过后来我给server改名成T2Tonrenji了
 ```
+#### claude code小tips
+##### 原来在不同的目录下打开claude那次的会话就会存入相应的目录下，/resume的时候是找不到在其他目录的会话的
+##### cd ~/workspace/T2T比如在这个目录下打开的calude这次会话只在这个目录下才能找到
