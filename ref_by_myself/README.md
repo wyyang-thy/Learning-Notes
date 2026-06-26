@@ -62,7 +62,8 @@ vim run_hybrid_assembly.sh
 set -euo pipefail
 
 # 变量设置，包括工作目录、原始数据、120核心、输出文件的名称
-WORK_DIR="/home/YangWenyan/workspace/ref_by_myself"
+# 因为大型的文件必须放在/tmpdata下，我的家目录所在的磁盘空间很小只适合存放重要的脚本
+WORK_DIR="mkdir -p /tmpdata/YangWenyan/lamprey_assembly"
 RAW_DATA_DIR="/home/YangWenyan/workspace/T2T/T2T_rawdata"
 THREADS=120
 PREFIX="lamprey_hybrid"
