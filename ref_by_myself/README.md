@@ -61,49 +61,55 @@ vim run_hybrid_assembly.sh
 #!/bin/bash
 set -euo pipefail
 
-# 变量设置，包括工作目录、原始数据、120核心、输出文件的名称
-# 因为大型的文件必须放在/tmpdata下，我的家目录所在的磁盘空间很小只适合存放重要的脚本
+# --- 变量设置 ---
 WORK_DIR="/tmpdata/YangWenyan/lamprey_assembly"
 RAW_DATA_DIR="/home/YangWenyan/workspace/T2T/T2T_rawdata"
+HIFIASM="/home/YangWenyan/workspace/ref_by_myself/hifiasm/hifiasm"
 THREADS=120
 PREFIX="lamprey_hybrid"
 GFA="${PREFIX}.bp.p_ctg.gfa"
 FASTA="${PREFIX}.p_ctg.fasta"
 LOG="${PREFIX}_run.log"
 
+mkdir -p "${WORK_DIR}"
 cd "${WORK_DIR}"
 
 echo "========== Hybrid Assembly Started at $(date) =========="
 
-# Step 1: 使用 samtools 提取纯净 FASTQ 序列，因为是原始的下机数据并没有比对到任何参考序列上，所以不能直接输入bam文件还是得换成fastq
+# Step 1: BAM 转 FASTQ
 echo "[Step 1] Converting BAM to FASTQ..."
 if [ ! -f "HIFI_14.fastq" ]; then
-    samtools fastq -@ 64 "${RAW_DATA_DIR}/HIFI_14.bam" > HIFI_14.fastq
+    samtools fastq -@ "${THREADS}" "${RAW_DATA_DIR}/HIFI_14.bam" > HIFI_14.fastq \
+        || { echo "ERROR: samtools fastq failed" >&2; exit 1; }
+    echo "[Step 1] Conversion complete: $(wc -l < HIFI_14.fastq) lines written."
 else
-    echo "HIFI_14.fastq already exists, skipping conversion."
+    echo "[Step 1] HIFI_14.fastq already exists, skipping."
 fi
 
-# Step 2: hifiasm 混合组装 (使用干净的 FASTQ)
-echo "[Step 2] Running hifiasm hybrid assembly with FASTQ..."
-/home/YangWenyan/workspace/ref_by_myself/hifiasm/hifiasm -o "${PREFIX}" -t "${THREADS}" \
+# Step 2: hifiasm 混合组装
+echo "[Step 2] Running hifiasm hybrid assembly..."
+"${HIFIASM}" -o "${PREFIX}" -t "${THREADS}" \
     --ul "${RAW_DATA_DIR}/ont.fasta" \
-    "HIFI_14.fastq" \
+    HIFI_14.fastq \
     2>&1 | tee "${LOG}"
 
 if [ "${PIPESTATUS[0]}" -ne 0 ]; then
     echo "ERROR: hifiasm failed. Check ${LOG} for details." >&2
     exit 1
 fi
-
 echo "[Step 2] hifiasm finished at $(date)"
 
 # Step 3: GFA 转 FASTA
 echo "[Step 3] Extracting primary contigs from GFA..."
 if [ ! -f "${GFA}" ]; then
-    echo "ERROR: Expected GFA file not found: ${GFA}" >&2
+    echo "ERROR: GFA file not found: ${GFA}" >&2
+    echo "Available GFA files:" >&2
+    ls "${PREFIX}"*.gfa 2>/dev/null || echo "  (none found)" >&2
     exit 1
 fi
+
 awk '/^S/{print ">"$2"\n"$3}' "${GFA}" > "${FASTA}"
+echo "[Step 3] FASTA written: ${FASTA}"
 
 # Step 4: 组装统计
 echo "[Step 4] Calculating assembly statistics..."
