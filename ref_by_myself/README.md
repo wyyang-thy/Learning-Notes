@@ -17,3 +17,4 @@ tmux a -t lamprey_asm
 # 彻底关闭对话有两种方法，第一种方法：在会话内输入exit回车或按ctrl d，第二种方法：
 tmux kill-session -t lamprey_asm
 ```
+#### 
