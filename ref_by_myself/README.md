@@ -59,11 +59,9 @@ vim run_hybrid_assembly.sh
 #### 脚本内容
 ```
 #!/bin/bash
-
-# 开启防御性编程，有报错就停止、有未定义变量就停止、管道中有一个步骤失败就停止整个流程
 set -euo pipefail
 
-# 变量设置，包括工作目录、原数据目录、核数、输出文件名字
+# 变量设置，包括工作目录、原始数据、120核心、输出文件的名称
 WORK_DIR="/home/YangWenyan/workspace/ref_by_myself"
 RAW_DATA_DIR="/home/YangWenyan/workspace/T2T/T2T_rawdata"
 THREADS=120
@@ -76,38 +74,38 @@ cd "${WORK_DIR}"
 
 echo "========== Hybrid Assembly Started at $(date) =========="
 
-# Step 1: hifiasm 混合组装
-# 注意：tee 管道下 set -e 无法捕获 hifiasm 自身的错误码
-# 用 PIPESTATUS 显式检查
-echo "[Step 1] Running hifiasm hybrid assembly..."
+# Step 1: 使用 samtools 提取纯净 FASTQ 序列，因为是原始的下机数据并没有比对到任何参考序列上，所以不能直接输入bam文件还是得换成fastq
+echo "[Step 1] Converting BAM to FASTQ..."
+if [ ! -f "HIFI_14.fastq" ]; then
+    samtools fastq -@ 64 "${RAW_DATA_DIR}/HIFI_14.bam" > HIFI_14.fastq
+else
+    echo "HIFI_14.fastq already exists, skipping conversion."
+fi
+
+# Step 2: hifiasm 混合组装 (使用干净的 FASTQ)
+echo "[Step 2] Running hifiasm hybrid assembly with FASTQ..."
 /home/YangWenyan/workspace/ref_by_myself/hifiasm/hifiasm -o "${PREFIX}" -t "${THREADS}" \
     --ul "${RAW_DATA_DIR}/ont.fasta" \
-    "${RAW_DATA_DIR}/HIFI_14.bam" \
+    "HIFI_14.fastq" \
     2>&1 | tee "${LOG}"
 
-# 显式检查 hifiasm 是否成功（PIPESTATUS[0] 是管道第一个命令的退出码）
 if [ "${PIPESTATUS[0]}" -ne 0 ]; then
     echo "ERROR: hifiasm failed. Check ${LOG} for details." >&2
     exit 1
 fi
 
-echo "[Step 1] hifiasm finished at $(date)"
+echo "[Step 2] hifiasm finished at $(date)"
 
-# Step 2: GFA 转 FASTA
-echo "[Step 2] Extracting primary contigs from GFA..."
-
+# Step 3: GFA 转 FASTA
+echo "[Step 3] Extracting primary contigs from GFA..."
 if [ ! -f "${GFA}" ]; then
     echo "ERROR: Expected GFA file not found: ${GFA}" >&2
-    echo "Available GFA files:" >&2
-    ls "${PREFIX}"*.gfa 2>/dev/null || echo "  (none found)" >&2
     exit 1
 fi
-
 awk '/^S/{print ">"$2"\n"$3}' "${GFA}" > "${FASTA}"
-echo "[Step 2] FASTA written to: ${FASTA}"
 
-# Step 3: 组装统计
-echo "[Step 3] Calculating assembly statistics..."
+# Step 4: 组装统计
+echo "[Step 4] Calculating assembly statistics..."
 seqkit stats -a "${FASTA}" | tee "${PREFIX}_seqkit_stats.txt"
 
 echo "========== Hybrid Assembly Finished at $(date) =========="
