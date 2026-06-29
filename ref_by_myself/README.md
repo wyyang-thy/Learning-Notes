@@ -117,6 +117,33 @@ seqkit stats -a "${FASTA}" | tee "${PREFIX}_seqkit_stats.txt"
 
 echo "========== Hybrid Assembly Finished at $(date) =========="
 ```
+#### 脚本精简版
+```
+#!/bin/bash
+
+# 变量设置
+WORK_DIR="/tmpdata/YangWenyan/lamprey_assembly"
+RAW_DATA_DIR="/home/YangWenyan/workspace/T2T/T2T_rawdata"
+HIFIASM="/home/YangWenyan/workspace/ref_by_myself/hifiasm/hifiasm"
+THREADS=120
+PREFIX="lamprey_hybrid"
+
+# 进入专属数据盘工作目录
+mkdir -p ${WORK_DIR}
+cd ${WORK_DIR}
+
+# 第一步：BAM 转 FASTQ
+samtools fastq -@ ${THREADS} ${RAW_DATA_DIR}/HIFI_14.bam > HIFI_14.fastq
+
+# 第二步：hifiasm 混合组装
+${HIFIASM} -o ${PREFIX} -t ${THREADS} --ul ${RAW_DATA_DIR}/ont.fasta HIFI_14.fastq
+
+# 第三步：GFA 转 FASTA
+awk '/^S/{print ">"$2"\n"$3}' ${PREFIX}.bp.p_ctg.gfa > ${PREFIX}.p_ctg.fasta
+
+# 第四步：组装统计
+seqkit stats -a ${PREFIX}.p_ctg.fasta > ${PREFIX}_seqkit_stats.txt
+```
 #### 加运行
 ```
 chmod +x run_hybrid_assembly.sh
