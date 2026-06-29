@@ -153,3 +153,4 @@ chmod +x run_hybrid_assembly.sh
 ./run_hybrid_assembly.sh
 ```
 #### 注意：/home/YangWenyan/workspace/ref_by_myself/hifiasm这个路径下是下载的hifiasm工具，不是输出，不要误删！！！！！
+#### QUAST质控的指标-N50：将 contig 按照长度从大到小排序，然后进行累加，直到累加的长度超过了总长度的 50%，此时，最后一个累加的 contig 的长度就是 N50 的长度。L50：将 contig 从大到小排序并累加，累加到总长度 50% 时所需的 contig 数量。
