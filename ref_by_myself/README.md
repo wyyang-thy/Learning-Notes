@@ -152,3 +152,4 @@ chmod +x run_hybrid_assembly.sh
 ```
 ./run_hybrid_assembly.sh
 ```
+#### 注意：/home/YangWenyan/workspace/ref_by_myself/hifiasm这个路径下是下载的hifiasm工具，不是输出，不要误删！！！！！
