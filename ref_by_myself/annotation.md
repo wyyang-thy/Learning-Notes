@@ -98,7 +98,7 @@ maker maker_exe.ctl maker_opts.ctl maker_bopts.ctl
 #maker opts.ctl:其他信息,例如输入基因组文件,主要调整输入文件等( genome= ;est= ;protein= ;pred_gff= ;)
 ```
 
-#### nCRNA注释
+### nCRNA注释
 ```
 rRNA(核糖体RNA)
 ·与蛋白质结合形成核糖体,其功能是作为mn的支架,提供mRNA翻译成蛋白质的场所。
