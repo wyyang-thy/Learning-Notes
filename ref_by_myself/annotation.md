@@ -18,3 +18,82 @@
 #### 3、欧洲河七鳃鳗 (European river lamprey).拉丁学名: Lampetra fluviatilis。NCBI 组装编号: GCF_964198595.1 (版本: kcLamFluv1.1)。数据比较新。
 #### 4、欧洲溪七鳃鳗 (European brook lamprey).拉丁学名: Lampetra planeri。NCBI 组装编号: GCF_965212315.1 (版本: kcLamPlan1.2.h2)。数据比较新。
 #### 5、太平洋七鳃鳗 (Pacific lamprey)。拉丁学名: Entosphenus tridentatus。NCBI 组装编号: GCA_014621495.2 (版本: ETRf_v1)。
+### 转录组数据: 雷氏七鳃鳗的RNAseq和lsoseq注释（用于结构注释中的转录辅助注释）：
+#### Bulk RNA-seq 数据：项目编号：PRJNA558325。研究人员提取了雷氏七鳃鳗的 10 个不同器官（心脏、鳃、精巢、脑、肝脏、口腔腺、肾脏、肠道、神经上体和肌肉）进行了高质量的 RNA 测序。SRA 编号 (Run ID)： 从 SRR9964076 到 SRR9964085。这 10 个文件下载下来一起比对，能提升基因组外显子边界预测的准确性。
+#### 长读长全长转录组 (Iso-Seq) 数据：：在 NCBI SRA 数据库的主页（ncbi.nlm.nih.gov/sra）搜索框中输入：Lethenteron reissneri Iso-seq 或者 Lethenteron reissneri PacBio 来获取最新的 SRA 编号。
+
+## 基因组注释的分析内容
+### 重复注释
+#### 重复序列广泛存在于真核生物基因组中，这些重复序列或集中成簇，或分散在基因之间。根据分布把重复序列分为散在重复序列和串联重复序列。重复序列根据序列特征分为2类：串联重复（Tandem repeats，如微卫星序列(150bp,13bp)，小卫星序列(20kb,25bp)，卫星序列(<5bp,>200bp)）和散布重复（Dispersed repeats，如DNA转座子，长末端重复序列LTR(1.5kbp-10kbp)，长散在重复序列LINE(>1000bp)，短散在重复序SINE(about300bp)）(每个软件都有很多参数,可-help/-h自行查看,参数的选择最好是参考已发表的文献)
+##### RepeatMasker:基于Repbase(dna)/自建elibrary查询重复序列
+```
+RepeatMasker -nolow -no_is -norna -parallel 2 -lib RepeatMasker.lib genome.fa
+#-nohow:屏蔽低复杂简单重复; -no_is:跳过细菌插入元件检查; -norna:不掩盖小RNA(伪)基因;
+#-parallel 并行使用的处理器数,可提升分析速度
+```
+##### RepeatProteinMask:基于 Repbase(pep)查询重复序列
+```
+RepeatProteinMask -noLowSimple -pvalue 0.0001 genome.fa
+#noLowSimple:关闭低复杂度和简单重复的屏蔽/注释; -pvalue:接受匹配的阈值
+#注意点: genome.fa的D不能长于18个字符
+```
+##### TRF:元件的结构特征等来识别重复序列
+```
+trf genome.fa 2 7 7 80 10 50 2000 -d -h
+```
+##### LTR-FINDER:基于重复序列特征
+```
+Itr_finder -W 2 -C -s tRNAs.fa genome.fa
+#-w 2 输出格式,2-table;  -C:检测中心粒,删除高重复区域
+```
+##### repeatmodeler:基于自身序列比对
+```
+BuildDatabase -name mydb genome.fa
+RepeatModeler -database mydb -pa 6 >run.out
+#-name:创建 database的名称;
+#-pa:共享内存处理器的数量程序,可提升分析速度
+```
+### 结构注释
+#### 结构注释:注释可以产生具有生物学功能的蛋白的基因。一般包括启动子，转录起始，5’UTR，起始密码子，外显子，内含子，终止密码子，3’UTR，poly-A等结构。以下是从大到小的包含关系
+##### De novo预测(屏蔽重复序列)
+###### Augustus(真核)
+```
+augustus --species=XXX --AUGUSTUS CONFIG PATH= config --uniqueGeneld=true --nolnFrameStop=true--gff3=on --strand=both genome.mask.fa> genome.mask.fa.out
+# --uniqueGeneld=true:gene:命名 aseqname.gn;
+# --nolnFrameStop=true:不带有终止密码子的转录本;
+# --gff3=on:输出格式gff3
+```
+###### GlimmerHMM(真核,预测的基因数目较多长度较短,一般用于植物)
+```
+glimmerhmm.genome.mask.fa -d XXX- f -g genome.mask.fa.gff
+
+# -d 库de路径;
+# -f:不要partial gene predictions;
+# -g输出格式gff
+```
+###### Genscan(真核,其预测的内含子较大,一般用于动物)
+```
+genscan Humanlso.smat genome.mask.fa > genome.mask.fa.genscan
+# Humanlsc.smat:参数文件,软件自带
+```
+###### 其他软件
+```
+SNAP. GenelD GenemarkS
+denovo的软件很多,两个软件就可以了,太多软件会增加较多的假阳性,一般在
+Augustus, GlimmerHMM, Genscan中选择即可
+```
+##### Homolog注释
+###### 利用近缘物种已知基因进行序列比对,找到同源序列。然后在同源序列的基础上,根据基因信号如剪切信号、基因起始和终止密码子对基因结构进行预测。相对于从头预测的“大海捞针”,同源预测相当于先用一块磁铁在基因组大海中缩小了可能区域,然后从可能区域中鉴定基因结构。利用TBlastn将同源物种的蛋白比对回基因组,得到候选区域。利用 EXonerate/ Genewise进行精确的蛋白-核酸比对,以得到剪接位点。Exonerate解决了 GeneWisez存在的很多问题,并且速度快了1000倍,默认选择EXonerate分析
+
+##### RNA-seq辅助注释.tophat比对————>cufflink转录本————>TransDecoder。将RNAseq数据进行tophat比对;比对后的结果文件利用cufflink构建转录本使用TransDecoder在构建的转录本上预测Open Reading Frame(ORF)。
+
+##### Iso seq 辅助注释.CD-HIT————>gmap比对————>TransDecoder。将物种的三代全长转录本用CD-HIT进行去冗余;将去冗余后的序列使用gmap比对回基因组得到转录本位置;使用TransDecoder在构建的转录本上预测 Open Reading Frame(ORF).
+
+### MAKERE整合
+#### 在基因组注释上, MAKER算是一个很强大的分析流程,主要是进行 Denovo注释， Homolog注释,转录辅助注释三者的整合,保证最终注释基因集的可靠性
+```
+maker maker_exe.ctl maker_opts.ctl maker_bopts.ctl
+#maker exe.ct:执行程序的路径
+#maker_ boots.ctl: BLAST7和 Exonerate的过滤参数
+#maker opts.ctl:其他信息,例如输入基因组文件,主要调整输入文件等( genome= ;est= ;protein= ;pred_gff= ;)
+```
