@@ -97,3 +97,56 @@ maker maker_exe.ctl maker_opts.ctl maker_bopts.ctl
 #maker_ boots.ctl: BLAST7和 Exonerate的过滤参数
 #maker opts.ctl:其他信息,例如输入基因组文件,主要调整输入文件等( genome= ;est= ;protein= ;pred_gff= ;)
 ```
+
+#### nCRNA注释
+```
+rRNA(核糖体RNA)
+·与蛋白质结合形成核糖体,其功能是作为mn的支架,提供mRNA翻译成蛋白质的场所。
+tRNA(转运RNA)
+·携带氨基酸进入核糖体,使之在mRNA指导下合成蛋白质。
+miRNA(miRNA)
+·将mRNA降解或抑制其翻译,具有沉默基因的功能。
+SnRNA(小核RNA)
+·主要参与RNA前体的加工过程,是RNA剪切体的主要成分。
+```
+#### miRNA与snRNA注释
+```
+采用Rfam和INFERNAL进行二级结构检测。
+ftp://ftp.sanger.ac.uk/pub/databases/Rfam
+blastn+cmsearch (INFERNAL程序)
+```
+#### rRNA注释
+```
+由于rRNA的结构保守程度非常高，因此采用与已有的全长rRNA进行blastn比对而获得。
+blastn
+tRNA注释
+结构特点:三叶草型二级结构。
+预测方法:针对二级结构进行检测。使用tRNAscan-SE
+```
+
+### 功能注释
+#### 功能注释:基因功能的注释依赖于上一步的基因结构预测，根据预测结果从基因组上提取翻译后的蛋白序列和主流的数据库进行blastp比对，完成功能注释。
+
+##### 常用数据库一共有以下几种:NR，KEGG, Uniprot (Swiss-Prot, TrEMBL)，InterPro,Go
+```
+KEGG
+生物学通路数据库(Gene,Pathway,Ligand).
+KEGG: Kyoto Encyclopedia of Genes and Genomes
+blastp
+SWISS-PROT和TrEMBL
+UniProt (Universal Protein Resource)蛋白质序列数据库PIR、SWISS-PROT和TrEMBL统一起来，建立了一个蛋白质数据库。
+UniProt
+blastp
+Interpro
+蛋白家族(protein families)、功能保守区域(domains)和功能位点(funtional sites)的数据库.
+InterPro
+InterProScan
+GO
+基因功能注释数据库(GeneOntology)
+三个层面Cellular Component、 Biological Process、 Molecular Function.
+Gene Ontology Resource
+InterProScan
+```
+### 基因组评估
+#### BUSCO评估
+##### BUSCO是一款使用python语言编写的对转录组和基因组组装质量进行评估的软件。在相近的物种之间总有一些保守的序列，而BUSCO就是使用这些保守序列与组装的结果进行比对，鉴定组装的结果是否包含这些序列，包含单条、多条还是部分或者不包含等等情况来给出结果。BUSCO软件根据OrthoDB数据库，构建了几个大的进化分支的单拷贝基因集。将其与该基因集进行比较，根据比对上的比例、完整性，来评价准确性和完整性。
