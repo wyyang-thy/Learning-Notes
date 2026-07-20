@@ -102,5 +102,13 @@ tmux new -s trans
 rsync -avh --info=progress2 \
   /tmpdata3/lamprey_T2T_fastq \
   /tmpdata4/
-
+# cd ~：离开 /tmpdata4，否则当前终端占用挂载点，可能无法卸载。
+# sync：把尚未写入硬盘缓存的数据全部写入移动硬盘。
+# umount：解除挂载。命令是 umount，不是 unmount。
+cd ~
+sync
+sudo umount /tmpdata4
+# 检查是不是解除挂载成功
+findmnt /tmpdata4
+lsblk -f
 ```
