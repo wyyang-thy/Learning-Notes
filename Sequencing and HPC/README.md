@@ -80,3 +80,27 @@ vim ~/.bashrc
 alias opencode='/home/vin/.opencode/bin/opencode'# 因为我没有安装opencode权限所以我只能把这个目录改个名字存在我这
 source ~/.bashrc# 刷新起效
 ```
+
+#### 挂载硬盘尝试
+```
+# 查看硬盘是不是插上了，在哪个接口上
+lsblk -f
+#查看这个挂载点上有没有旧的挂载
+findmnt /tmpdata4
+mount | grep '/tmpdata4'# 假如有三个旧的挂载
+# 去除旧的挂载三次，每次只能去除最上边的一个
+sudo umount -l /tmpdata4
+sudo umount -l /tmpdata4
+sudo umount -l /tmpdata4
+# 挂载
+sudo mount /dev/sdg1 /tmpdata4
+# 查看硬盘容量
+df -h /tmpdata4
+# 开tmux窗口
+tmux new -s trans
+# 其中a适合复制整个目录。v是verbose是显示进度。h是容易看懂的单位。progress2是显示整体进度
+rsync -avh --info=progress2 \
+  /tmpdata3/lamprey_T2T_fastq \
+  /tmpdata4/
+
+```
