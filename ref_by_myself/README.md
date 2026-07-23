@@ -155,3 +155,11 @@ chmod +x run_hybrid_assembly.sh
 #### 注意：/home/YangWenyan/workspace/ref_by_myself/hifiasm这个路径下是下载的hifiasm工具，不是输出，不要误删！！！！！
 #### QUAST质控的指标-N50：将 contig 按照长度从大到小排序，然后进行累加，直到累加的长度超过了总长度的 50%，此时，最后一个累加的 contig 的长度就是 N50 的长度。L50：将 contig 从大到小排序并累加，累加到总长度 50% 时所需的 contig 数量。
 #### 我们拼装T2T的逻辑：软件在底层建立一个极其复杂的数学模型（String Graph，也就是我们之前聊过的那些带有“气泡”的图）。它先用 HiFi 数据把这张图画得无比精确，一旦遇到画不下去的死胡同（着丝粒区域），它直接在同一张图里引入 ONT 序列作为向导，引导程序走出迷宫。
+
+#### 学习一个新的工具seqkit，可以对fastq文件快速进行统计
+```
+# 快速输出序列总数、总碱基数、N50 长度等关键质量指标
+seqkit stats PetMar_mt.fa
+# grep会提取想要的序列，n是name根据名字搜索关键词，r是正则表达式，p是模式，按照正则表达式提取，这里会输出所有线粒体序列
+seqkit grep -n -r -p "mitochond" /home/YangWenyan/workspace/codex_work/lamprey_reference/GCF_010993605.1/GCF_010993605.1_kPetMar1.pri_genomic.fna > PetMar_mt.fa
+```
