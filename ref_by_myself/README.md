@@ -163,3 +163,25 @@ seqkit stats PetMar_mt.fa
 # grep会提取想要的序列，n是name根据名字搜索关键词，r是正则表达式，p是模式，按照正则表达式提取，这里会输出所有线粒体序列
 seqkit grep -n -r -p "mitochond" /home/YangWenyan/workspace/codex_work/lamprey_reference/GCF_010993605.1/GCF_010993605.1_kPetMar1.pri_genomic.fna > PetMar_mt.fa
 ```
+#### minimap
+```
+# minimap建立索引，d是index的意思，献给这个线粒体序列fa建立索引，方面比对的时候查找信息
+minimap2 -d PetMar_mt.mmi PetMar_mt.fa
+# 比对，32个线程，预设参数是asm也就是assembly和assembly之间的比对
+minimap2 \
+-t 32 \
+-x asm5 \
+PetMar_mt.mmi \
+/tmpdata/YangWenyan/lamprey_assembly/lamprey_hybrid.p_ctg.fasta \
+> mt_alignment.paf
+# 将文本按列对齐之后输出查看
+column -t mt_alignment.paf | less -S
+```
+
+#### awk '模式 { 动作 }' 文件名
+```
+# 按列对齐之后输出第一列并且保存下来
+column -t mt_alignment.paf | awk '{print $1}' > mito_contig.txt
+# 去掉重复的名字
+sort -u mito_contig.txt
+```
