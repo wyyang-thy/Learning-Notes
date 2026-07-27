@@ -112,3 +112,18 @@ sudo umount /tmpdata4
 findmnt /tmpdata4
 lsblk -f
 ```
+```
+# 挂载硬盘确实需要这些步骤
+# 先看硬盘插到了哪里
+lsblk -f# 如果发现在sdd1上那就是/dev/sdd1
+# 然后挂载
+mount /dev/sdd1 /tmpdata4
+# 检查是不是挂载好了
+cd /tmpdata4
+ls -lh
+# 开一个tmux窗口进行传输
+tmux new -s trans
+rsync -avh --info=progress2 /tmpdata4/test /tmpdata3
+# 传输完成之后解挂载
+sudo umount /tmpdata4 
+```
