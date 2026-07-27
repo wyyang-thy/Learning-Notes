@@ -123,7 +123,7 @@ cd /tmpdata4
 ls -lh
 # 开一个tmux窗口进行传输
 tmux new -s trans
-rsync -avh --info=progress2 /tmpdata4/test /tmpdata3
+rsync -avh --info=progress2 /tmpdata4/test /tmpdata3# 这样会传输整个文件进去，但是如果是/tmpdata4/test/这样会把test下的文件散落的传输过去
 # 传输完成之后解挂载
 sudo umount /tmpdata4 
 ```
