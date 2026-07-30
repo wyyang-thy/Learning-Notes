@@ -117,7 +117,7 @@ lsblk -f
 # 先看硬盘插到了哪里
 lsblk -f# 如果发现在sdd1上那就是/dev/sdd1
 # 然后挂载
-mount /dev/sdd1 /tmpdata4
+sudo mount /dev/sdd1 /tmpdata4
 # 检查是不是挂载好了
 cd /tmpdata4
 ls -lh
