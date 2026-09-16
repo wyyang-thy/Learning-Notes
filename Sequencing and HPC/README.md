@@ -127,3 +127,12 @@ rsync -avh --info=progress2 /tmpdata4/test /tmpdata3# 这样会传输整个文�
 # 传输完成之后解挂载
 sudo umount /tmpdata4 
 ```
+
+```
+# 在wsl中临时挂载新的硬盘
+# -t drvfs	指定文件系统类型为 drvfs，这是 WSL 专门用来访问 Windows 盘符的类型
+# F:	要挂载的源，即 Windows 里的 F 盘
+# /mnt/f	挂载点，即在 WSL 里通过哪个目录访问它
+# -o metadata	挂载选项，允许在这个盘上保存 Linux 的权限信息
+sudo mount -t drvfs F: /mnt/f -o metadata
+```
