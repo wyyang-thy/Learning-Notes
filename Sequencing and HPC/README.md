@@ -135,4 +135,5 @@ sudo umount /tmpdata4
 # /mnt/f	挂载点，即在 WSL 里通过哪个目录访问它
 # uid/gid 让挂载后的文件归你所有，不用 sudo 也能写。
 sudo mount -t drvfs F: /mnt/f -o uid=$(id -u),gid=$(id -g)
+sudo umount /mnt/f
 ```
