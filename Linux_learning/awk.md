@@ -39,6 +39,7 @@ awk '{print $3 "\t" $4}' marks.txt
 awk '/a/ {print $0}' marks.txt
 # $0的意思是按照原来的格式输出，查找所有包含字母a的行和列都输出
 awk '/a/ {++n} END{print "count=" n}' marks.txt# 这个是每查找到一个n就+1，然后最后输出count=n
+awk 'length($0)>18 {print}' mask.txt# 这个是输出长度大于18的行，$0好像就是一整行/当前行的意思。
 ```
 
 
