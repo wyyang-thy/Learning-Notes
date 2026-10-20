@@ -137,3 +137,11 @@ sudo umount /tmpdata4
 sudo mount -t drvfs F: /mnt/f -o uid=$(id -u),gid=$(id -g)
 sudo umount /mnt/f
 ```
+```
+# 上边这个硬盘传输数据也不能用常规的方法
+# --copy-links 把软链接指向的真实文件拷过去。如果你想跳过软链接，换成 --no-links。
+# --append-verify 实现断点续传。
+# --modify-window=1 容忍 exFAT 的时间戳精度差异，避免下次全部重传。
+# rt是递归和时间戳
+rsync -rtvh --copy-links --append-verify --modify-window=1 --partial --info=progress2 /tmpdata/YangWenyan/twolamprey_blood/results/20260113-V1-5/outs ./
+```
