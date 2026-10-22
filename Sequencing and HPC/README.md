@@ -143,5 +143,11 @@ sudo umount /mnt/f
 # --append-verify 实现断点续传。
 # --modify-window=1 容忍 exFAT 的时间戳精度差异，避免下次全部重传。
 # rt是递归和时间戳
-rsync -rtvh --copy-links --partial --info=progress2 /tmpdata/YangWenyan/twolamprey_blood/results/20260113-V1-5/outs ./
+rsync -rtvh --copy-links --partial --info=progress2 --stats /tmpdata/YangWenyan/twolamprey_blood/results/20260113-V1-5/outs ./
+# -r：递归目录
+# -t：保留源文件修改时间，便于以后增量同步和核对
+# -v -h：输出详细、易读的进度
+# --copy-links：和上次保持一致（这次源目录里实际没有软链接，加了也无害）
+# --partial：中断时保留未完成文件，便于续传
+# --info=progress2 --stats：显示整体进度和传输统计
 ```
