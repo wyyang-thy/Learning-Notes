@@ -52,7 +52,10 @@ bwa mem -5SP -t 16 yang-v2.fa hicqc_R1.fq hicqc_R2.fq | samtools view -bh - > hi
 ### illmina质检
 ```
 # fastp：只看报告，不用输出剪切后的 read。它会给出精确的 read 数、Q30 比例、重复率、接头比例和插入片段大小，正好把表格里的估算值换成实测值
-# k-mer 评估：用原始 read 直接建 k-mer 库就行，低质量 k-mer 会落在频数分布的错误峰里，不影响结果
+# 切除接头和过滤低质量数据(fastq这个工具有些默认参数会识别低质量的碱基)
+fastp -i "$R1" -I "$R2" --detect_adapter_for_pe -w 16 \
+  -j fastp/fastp.json -h fastp/fastp.html > fastp/fastp.log 2>&1
+# k-mer 评估：用原始 read 直接建 k-mer 库就行，没有用fastq输出的干净的reads，低质量 k-mer 会落在频数分布的错误峰里，不影响结果
 meryl count k=21 threads=16 memory=64 output illumina.k21.meryl illumina/*.fq.gz# 建立一个kmer库
 meryl histogram illumina.k21.meryl > illumina.k21.hist     # → GenomeScope2，给kmer画直方图
 merqury.sh illumina.k21.meryl yang-v2.fa merqury_yang-v2   # → QV 和完整度，看组装中有什么kmer，哪些是应该有的，哪些是不应该有的
