@@ -46,6 +46,8 @@ bwa index yang-v2.fa
 # 不要对 Hi-C 做剪切：bwa mem -5SP 会自己处理 read 末端，提前剪切反而可能破坏配对信息，这是 YaHS、Arima 等官方流程的通用建议
 zcat hic/FDHC230007956-1a_L2_1.fq.gz | head -8000000 > hicqc_R1.fq   # 前 200 万对
 zcat hic/FDHC230007956-1a_L2_2.fq.gz | head -8000000 > hicqc_R2.fq
+
+# 把 200 万对 Hi-C read 比对到 yang-v2 上，得到每条 read 落在哪个 contig 的哪个位置，再存成按 read 名排序的 BAM 文件
 bwa mem -5SP -t 16 yang-v2.fa hicqc_R1.fq hicqc_R2.fq | samtools view -bh - > hicqc.bam
 # 然后用 Phase Genomics 的 hic_qc 读这个 BAM 出报告，或者用 pairtools parse → dedup → stats。重点看有效 pair 比例、长程 cis（>10 kb）比例和重复率。
 ```
@@ -66,4 +68,42 @@ merqury.sh illumina.k21.meryl yang-v2.fa merqury_yang-v2   # → QV 和完整度
 # 矫正会修正小的插入缺失，contig 上每个修正点之后的坐标都会移动几个 bp。
 # 而挂载的所有中间结果都绑定在坐标上：Hi-C 比对结果、互作矩阵、YaHS 生成的 AGP 文件、Juicebox 里的手工调整记录。
 # 如果先挂载再矫正，这些坐标全部失效，等于挂载要重做一遍，Juicebox 的手工调整也白做了。
+
+# 首先做yang-v2的polishing，用到的数据是HIFI Cell 1A和illumina数据，其中hifi数据用于定位错误，比如单倍体冗余的地方，而且因为hifi读长很长可以定位到唯一的repetitive，用illumina来进行修正错误
+# 01、切除illumina中的接头和质量差的read，接头不是七鳃鳗的序列。接头会产生错误的 k-mer。错误的 k-mer 会误导矫正。
+fastp -i illumina_R1.fq.gz -I illumina_R2.fq.gz \
+  -o 01_illumina_clean_R1.fq.gz -O 01_illumina_clean_R2.fq.gz \
+  --detect_adapter_for_pe -q 15 -u 40 -n 5 -l 15 -w 16 \
+  -j 01_fastp.json -h 01_fastp.html
+
+# 02、把hifi reads比对到yang-v2，先把bam文件转换成fastq文件不输出直接给minimap，然后按照位置排序并建立索引
+# 在某个位置，如果大多数 read 和组装不同，这个位置就可能有错误。比对文件提供这些候选位置。
+minimap2 -ax map-hifi -t $T yang-v2.fa \
+  <(samtools view -u -F 0x900 hifi_1A.bam | samtools fastq -) \
+  | samtools sort -@ 8 -m 3G -T 03_sort_tmp -o 03_hifi.sorted.bam -
+samtools index 03_hifi.sorted.bam
+samtools flagstat 03_hifi.sorted.bam > 03_hifi_flagstat.txt
+samtools coverage 03_hifi.sorted.bam > 03_hifi_coverage.tsv
+
+# 03、制作kmer库，统计 Illumina clean reads 中每种 k-mer 的出现次数
+# k-mer 库是判断碱基对错的标准。某段序列的 k-mer 在库中出现约 40 次，说明这段序列真实存在。出现次数为 0，说明这段序列可能有错误。
+CLEAN="01_illumina_clean_R1.fq.gz 01_illumina_clean_R2.fq.gz"
+yak count -t $T -k 21 -b 37 -o 04_k21.yak <(zcat $CLEAN) <(zcat $CLEAN)   # 21-mer 短，统计结果稳定。
+yak count -t $T -k 31 -b 37 -o 04_k31.yak <(zcat $CLEAN) <(zcat $CLEAN)   # 31-mer 长，在重复区更容易区分不同位置。-b 37：用约 16 GB 的过滤器去掉只出现一次的 k-mer。这些 k-mer 大多来自测序错误。输入写两次：yak 第一遍读取时填充过滤器，第二遍读取时计数。
+
+# 04、nextpolisher矫正，用比对文件找出组装和 HiFi read 不同的位置，为每个位置列出候选序列，在 k-mer 库中查询每个候选序列的 k-mer，选择 k-mer 支持最多的候选序列。证据不足时，它保留原序列。
+nextPolish2 -t $T 03_hifi.sorted.bam yang-v2.fa 04_k21.yak 04_k31.yak \
+  > 05_yang-v2.np2.fa 2> 05_nextpolish2.log
+samtools faidx 05_yang-v2.np2.fa
+
+# 05、Merqury：比较矫正前后的 QV
+# 把矫正后的组装切成 21-mer，建一个组装的 k-mer 库
+# 找出"组装里有、Illumina 里没有"的 k-mer，换算成 QV（和质检时的算法一样）
+# 找出"Illumina 里可靠、组装里也有"的 k-mer 比例，就是完整度
+# 对每条 contig 单独计算一次 QV
+merqury.sh /tmpdata/YangWenyan/20261029dalian_data/yang-v3-qc/illumina/meryl/illumina.k21.meryl \
+  05_yang-v2.np2.fa 06_merqury_np2# 这几个文件分别是参考标准kmer、校正后的组装、输出文件的前缀
+
+# 06、bwa index：为 Hi-C 挂载做准备，矫正会改变 contig 上的坐标。挂载的结果都依赖坐标。所以先矫正，后挂载。Hi-C 数据要比对到矫正后的组装上。
+bwa index 05_yang-v2.np2.fa
 ```
