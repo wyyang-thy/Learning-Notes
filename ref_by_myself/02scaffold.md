@@ -100,7 +100,7 @@ samtools faidx 05_yang-v2.np2.fa
 
 # 05、Merqury：比较矫正前后的 QV
 # 把矫正后的组装切成 21-mer，建一个组装的 k-mer 库
-# 找出"组装里有、Illumina 里没有"的 k-mer，换算成 QV（和质检时的算法一样）
+# 找出"组装里有、Illumina 里没有"的 k-mer，换算成 QV（和质检时的算法一样）.
 # 找出"Illumina 里可靠、组装里也有"的 k-mer 比例，就是完整度
 # 对每条 contig 单独计算一次 QV
 merqury.sh /tmpdata/YangWenyan/20261029dalian_data/yang-v3-qc/illumina/meryl/illumina.k21.meryl \
