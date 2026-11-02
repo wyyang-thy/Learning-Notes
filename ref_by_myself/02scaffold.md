@@ -69,6 +69,8 @@ merqury.sh illumina.k21.meryl yang-v2.fa merqury_yang-v2   # → QV 和完整度
 # 而挂载的所有中间结果都绑定在坐标上：Hi-C 比对结果、互作矩阵、YaHS 生成的 AGP 文件、Juicebox 里的手工调整记录。
 # 如果先挂载再矫正，这些坐标全部失效，等于挂载要重做一遍，Juicebox 的手工调整也白做了。
 
+# 似乎原理是这样的：hifi先比对到组装上，然后在有歧义的地方提供一些候选，比如和组装不一样、单倍体差异这样，会提供几个候选，如果现在的组装的kmer在illumina的kmer中找不到对应（组装错误），那么nextpolisher就会从候选中找一个在illumina的kmer中出现次数多的候选给组装进行修改。如果候选的kmer出现次数一样，也就是真实出现的单倍体差异，那就不修改。
+# illumina在重复区、GC含量高的区域可能测不到reads，所以这些地方的QV可能比较低，如果HIFI的reads都一致的话应该就是对的
 # 首先做yang-v2的polishing，用到的数据是HIFI Cell 1A和illumina数据，其中hifi数据用于定位错误，比如单倍体冗余的地方，而且因为hifi读长很长可以定位到唯一的repetitive，用illumina来进行修正错误
 # 01、切除illumina中的接头和质量差的read，接头不是七鳃鳗的序列。接头会产生错误的 k-mer。错误的 k-mer 会误导矫正。
 fastp -i illumina_R1.fq.gz -I illumina_R2.fq.gz \
@@ -104,6 +106,18 @@ samtools faidx 05_yang-v2.np2.fa
 merqury.sh /tmpdata/YangWenyan/20261029dalian_data/yang-v3-qc/illumina/meryl/illumina.k21.meryl \
   05_yang-v2.np2.fa 06_merqury_np2# 这几个文件分别是参考标准kmer、校正后的组装、输出文件的前缀
 
+# Illumina 的覆盖度约 44×，按 k-mer 算约 38×。这个数是对两份同源染色体合计而言的，每一份各贡献一半，约 19×。所以，一个 k-mer 在 reads 中出现几次，取决于它在每个细胞的基因组里有几份
+# 这个 k-mer 存在于一个位置，只在一套单倍型上（杂合），每个细胞中一份，reads出现约19次，主要的组装中出现1次或0次，组装中随机选了一种，剩下的没被组装进去就是 read-only（只在illumina的reads中出现）
+# 这个 k-mer 存在于一个位置，两套单倍型都有（纯合），每个细胞中2份，reads出现约38次，主要的组装中出现1次
+# 这个 k-mer 存在于两个不同的位置，两套单倍型都有，每个细胞中4份，reads出现约72次，主要的组装中出现2次，因为主要组装只保留一份单倍型
+
 # 06、bwa index：为 Hi-C 挂载做准备，矫正会改变 contig 上的坐标。挂载的结果都依赖坐标。所以先矫正，后挂载。Hi-C 数据要比对到矫正后的组装上。
 bwa index 05_yang-v2.np2.fa
+```
+## HIC挂载
+```
+# 检查组装中是否有冗余：即是否同时保留两份单倍体
+awk -F'\t' 'NR>1{m=$2;
+  r=(m<=5?"1_错误区":m<=28?"2_杂合峰":m<=55?"3_纯合峰":m<=95?"4_两倍纯合峰":"5_更高");
+  s[r"\t"$1]+=$3} END{for(k in s) print k"\t"s[k]}'   06_merqury_np2.05_yang-v2.np2.spectra-cn.hist | sort
 ```
