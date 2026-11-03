@@ -95,7 +95,7 @@ yak count -t $T -k 31 -b 37 -o 04_k31.yak <(zcat $CLEAN) <(zcat $CLEAN)   # 31-m
 
 # 04、nextpolisher矫正，用比对文件找出组装和 HiFi read 不同的位置，为每个位置列出候选序列，在 k-mer 库中查询每个候选序列的 k-mer，选择 k-mer 支持最多的候选序列。证据不足时，它保留原序列。
 nextPolish2 -t $T 03_hifi.sorted.bam yang-v2.fa 04_k21.yak 04_k31.yak \
-  > 05_yang-v2.np2.fa 2> 05_nextpolish2.log
+  > 05_yang-v2.np2.fa 2> 05_nextpolish2.log# 矫正后的主要结果
 samtools faidx 05_yang-v2.np2.fa
 
 # 05、Merqury：比较矫正前后的 QV
@@ -114,7 +114,7 @@ merqury.sh /tmpdata/YangWenyan/20261029dalian_data/yang-v3-qc/illumina/meryl/ill
 # 06、bwa index：为 Hi-C 挂载做准备，矫正会改变 contig 上的坐标。挂载的结果都依赖坐标。所以先矫正，后挂载。Hi-C 数据要比对到矫正后的组装上。
 bwa index 05_yang-v2.np2.fa
 ```
-## HIC挂载
+## HIC挂载，数据形式：[接头]──A──GATCGATC──────B──────[接头]，GATC是HIC的酶切位点
 ```
 # 检查组装中是否有冗余：即是否同时保留两份单倍体，根据这个hist分布画了一个分布图，结果是没有太多冗余，不需要单独去冗余
 awk -F'\t' 'NR>1{m=$2;
@@ -124,6 +124,33 @@ awk -F'\t' 'NR>1{m=$2;
 # 挂载依据一个规律：同一条染色体上的互作远多于不同染色体之间，而且两个位置在序列上越近，互作越多。
 # 每一对 Hi-C read 都记录了一次“A 和 B 在细胞核里挨在一起”。把几亿对 read 比对到 contig 上并汇总，就得到任意两个 contig（或 contig 的两个片段）之间的互作次数。
 # 分组：哪些 contig 属于同一条染色体。同一条染色体上的 contig 之间互作多；不同染色体之间互作少且分散
-# 排序：contig 在染色体上的先后顺序。相邻的 contig 互作最多；相隔越远，互作越少
-# 定方向：每条 contig 是正向还是反向。互作集中在哪两个末端之间
+# 排序：contig 在染色体上的先后顺序。相邻的 contig 互作最多；相隔越远，互作越少。比如顺序为A-B-C-D，那必然AB之间互作强，BC之间互作强，CD之间互作强，但是具体是ABCD还是DCBA是不确定的。
+# 定方向：每条 contig 是正向还是反向。互作集中在哪两个末端之间，比如contig1的右端和contig2的左端互作比较多，contig2就正向接在contig1的后边，如果1的右端和2的右端互作多，就把2反向接在1后边
+
+# 01、比对，使用的是bwa中的子算法mem，把R1和R2对应的hifi read比对到基因组上，因为bwa是给普通双端测序设计的，普通双端设计是一条序列的两个方向测的，2个5'，但是hic会有点特殊，是不同的序列的两个方向测的，都是5'，但是和普通测序不同的是，普通测序是针对同个DNA分子的不同链，HIC测序因为经过甲醛处理，所以是互作的两段DNA分子连在一起，所以测的是不同DNA分子的不同链（DNA有两条链，测的时候一个测上链一个测下链）。
+# BWA测序的默认规则是保留比对得分高的那一段，假如AB两段互作的DNA分子连接，如果A段只有40bp，而B分子有140bp，那么B序列进行比对的时候得分会比较高，如果R1的比对保留了B，R2本来就是从B开始测的而且因为B得分高，所以也会保留B，这样保留的是B-B之间的互作而不是真实的A-B互作，为了避免这种情况，这里选择参数-5也就是不管比对得分哪段更高，都保留靠近5'端的主比对
+# 普通测序中，如果 R1 唯一比对到了位置 X，而 R2 没比对上（比如有测序错误），bwa 会在 X 附近几百 bp 的范围内用更宽松的方法再找一遍 R2。因为它假设 R2 一定就在附近，这样能救回很多 read。但是HIC中R2未必就在R1附近，所以这样会产生很多错误的互作，所以-S关闭这种就近rescue，如果另一端比对不上也就记录比对不上
+# 同理，如果 R2 有两个候选位置，P 在 R1 附近，Q 在很远的地方，两处匹配得差不多好，bwa 会选 P，因为这样能和 R1 配成"正常的一对"。有时它甚至宁可选一个匹配稍差、但能配成正常一对的位置。所以-P关闭强制配对，在bwa的文档中规定SP一起用
+bwa mem -5SP -t 64 05_yang-v2.np2.fa hic_R1.fq.gz hic_R2.fq.gz
+
+# 02、去重与过滤
+... | samblaster | samtools view -S -h -b -F 3340 -o 01_hic.filtered.bam -
+
+# 03、按照read名排序，YaHS 逐对读取 read，需要同一对 read 的两条记录在文件中相邻
+samtools sort -n -o 01_hic.filtered.nsort.bam 01_hic.filtered.bam
+
+# 04、Yash自动挂载，YaHS 的输出是 02_yahs_scaffolds_final.fa（挂载后的序列）、02_yahs_scaffolds_final.agp（每条 contig 放在哪里、什么方向）和 02_yahs.bin（压缩保存的互作数据，生成 Juicebox 文件时用）。
+# 1. 读取互作：只保留两端 MAPQ ≥ 10 的 read 对（-q，默认 10）。位置不确定的 read 会制造假的互作，质检时已经看到：过滤掉 MAPQ<30 后，trans 减少了 54%。
+# 2. contig 纠错：正常 contig 内部的互作应随距离平滑下降。如果某处两侧几乎没有互作，说明这里可能是把两段无关序列拼在了一起，YaHS 在这里打断 contig。
+# 3. 建立互作矩阵：把 contig 切成小段，统计每两段之间的互作次数。重点是 contig 末端之间的互作，因为它们决定哪两个末端应该接在一起。
+# 4. 标准化：互作次数不仅取决于空间距离，还取决于一段序列上有多少个酶切位点：GATC 越多，能产生的连接就越多。-e GATC 告诉 YaHS 酶切位点是什么，它据此校正这种偏差，让不同区域的互作次数可以相互比较。
+# 5. 建图并连接：把每个 contig 末端看成一个节点，标准化后互作强的末端之间连一条边。去掉矛盾和不确定的连接后，沿着边走一遍，就得到 contig 的顺序和方向。
+# 6. 多轮迭代：先用较细的分辨率连接相邻的 contig，再逐轮用更粗的分辨率把已经连好的大片段继续连起来。
+# 7. 输出：相邻 contig 之间插入固定长度的 N，表示这里有缺口但长度未知。
+yahs -e GATC -o 02_yahs 05_yang-v2.np2.fa 01_hic.filtered.nsort.bam
+
+# 05、生成juicebox文件便于手动调整
+juicer pre -a -o 03_JBAT 02_yahs.bin 02_yahs_scaffolds_final.agp 05_yang-v2.np2.fa.fai > 03_JBAT.log 2>&1
+java -Xmx64G -jar juicer_tools.2.20.00.jar pre 03_JBAT.txt 03_JBAT.hic \
+  <(grep PRE_C_SIZE 03_JBAT.log | awk '{print $2" "$3}')
 ```
