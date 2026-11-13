@@ -22,8 +22,12 @@ samtools flags 99# 可以用这条命令拆解99是什么意思，1+2+32+64分�
 ```
 
 #### 在进行cellranger的时候保留bam文件，使用bam文件拆分不同个体，以雷氏七鳃鳗LPS PHA处理的血液样本为例，我们使用cellSNP-lite + Vireo的方法进行拆分个体。
+
 #### cellsnp-lite第一步会在bam文件中做每个位置上的碱基统计，如果一个位置同时有相当数量的两种碱基，就记为候选SNP，如果只看到一种碱基，说明这个位置对于区分不同个体没用就不记录在内。第二步只看第一遍选出的候选位点，利用BAM里的CB标签，把reads按细胞分开，输出是两个大矩阵，行是位点，列是细胞，内容是统计每个细胞在每个位点上测到了几次参考碱基、几次变异碱基。
 #### vireo根据这张表推断每个细胞属于哪条鱼。先随机猜一个分组。根据当前分组，把同组细胞的计数加起来，估计每条鱼在每个位点上的基因型。根据估计出的基因型，重新计算每个细胞更像哪条鱼，更新分组。重复，直到分组不再变化。例如：两条鱼三个细胞，鱼1是1 2 3细胞，鱼2是4 5 6细胞，第一次根据当前对于每个位点上基因型进行分组，把1 2 4分到了一组， 3 5 6分到了另一组，然后对每个组的细胞的基因型进行统计，比如在第一个位点上都是和参考基因一样的碱基，第二个位点上都是变异的，第三个是2参考 ： 1变异，同理第二组也有一个1 ： 1，然后对每个细胞进行判断，发现3在第三个位点上是参考，于是换到第一组，同理把4换到第二组，这样分组在所有细胞的每一个位点上几乎要么都是参考，要么都是变异占主导，不会出现1 ：1这就是分组正确了。
+
+## 根据bam文件拆分个体
+### 01、计算VCF文件
 ```
 #!/bin/bash
 # 用途：从 LPS、PHA 两个血液文库生成候选 SNP 位点表（VCF），
@@ -80,4 +84,55 @@ tabix -p vcf "$OUT/common_variants.vcf.gz"
 
 log "候选 SNP 数：$(bcftools view -H "$OUT/common_variants.vcf.gz" | wc -l)"
 log "完成：$OUT/common_variants.vcf.gz"
+```
+
+### 02、cellanp
+```
+#!/bin/bash
+# 用途：对单个文库的完整 BAM，在候选 SNP 位点上做 pileup，
+# 统计每个细胞在各位点的 ref/alt 等位基因计数（AD/DP 矩阵），供 vireo 拆分
+set -euo pipefail
+
+# ---------- 参数 ----------
+SAMPLE=$1
+export PATH=/home/YangWenyan/miniconda3/envs/cellsnp/bin:$PATH
+COUNT=/tmpdata/YangWenyan/yang-v2/count_all_v436
+OUT=$COUNT/splitsample
+BAM=$COUNT/$SAMPLE/outs/possorted_genome_bam.bam     # cellranger 位置排序 BAM
+BARCODES=$OUT/$SAMPLE/barcodes.tsv                   # 过滤后的细胞 barcode 列表
+REGIONS=$OUT/common_variants/common_variants.vcf.gz  # 候选 SNP 位点（02 脚本产物）
+
+log() { echo "[$(date '+%F %T')] $*"; }
+
+# ---------- pileup ----------
+log "cellsnp-lite 开始：$SAMPLE"
+
+# --cellTAG CB：BAM 中细胞 barcode 标签;--UMItag UB ：BAM 中 UMI 标签，去重后计数;--minMAF 0.1：保留小等位基因频率 >= 0.1 的位点;--minCOUNT 20：细胞内最低等位基因计数
+cellsnp-lite -s "$BAM" -b "$BARCODES" -O "$OUT/$SAMPLE/cellsnp" \
+  -R "$REGIONS" --cellTAG CB --UMItag UB --minMAF 0.1 --minCOUNT 20 -p 20 \
+  | tee "$OUT/logs/03_cellsnp_${SAMPLE}.log"
+
+log "cellsnp-lite 完成：$SAMPLE"
+```
+
+### 03、vireo
+```
+#!/bin/bash
+# 用途：基于 cellsnp-lite 的等位基因矩阵做贝叶斯个体拆分。
+# 本批次两个文库各自混了 3 条不同的幼体（共 6 条），故 -N 3 独立拆分
+set -euo pipefail
+
+# ---------- 参数 ----------
+SAMPLE=$1
+export PATH=/home/YangWenyan/miniconda3/envs/cellsnp/bin:$PATH
+OUT=/tmpdata/YangWenyan/yang-v2/count_all_v436/splitsample
+
+log() { echo "[$(date '+%F %T')] $*"; }
+
+# ---------- 拆分 ----------
+log "vireo 开始：$SAMPLE"
+# -N 3：池中个体数;--randSeed 42：随机种子，保证可重复
+vireo -c "$OUT/$SAMPLE/cellsnp" -N 3 -o "$OUT/$SAMPLE/vireo" \
+  -p 20 --randSeed 42 | tee "$OUT/logs/04_vireo_${SAMPLE}.log"
+log "vireo 完成：$SAMPLE"
 ```
