@@ -151,3 +151,9 @@ rsync -rtvh --copy-links --partial --info=progress2 --stats /tmpdata/YangWenyan/
 # --partial：中断时保留未完成文件，便于续传
 # --info=progress2 --stats：显示整体进度和传输统计
 ```
+```
+# 在服务器上挂载硬盘，这样就可以挂载哪个8T硬盘了，我就可以访问并且修改这个文件夹了
+sudo mount -t exfat \
+  -o uid=1007,gid=1008,umask=0022 \
+  /dev/sdd2 /tmpdata4
+```
