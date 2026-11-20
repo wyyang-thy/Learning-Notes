@@ -1,0 +1,23 @@
+# 使用的工具是/tmpdata/LyuLin/tool/Nanodecoder/Nanodecoder，可以-h查看用法
+## 根据要求我需要提供一个具有TSL标签的注释文件，因为内置的parseBam 只保留 TSL=1 的转录本
+```
+awk 'BEGIN{FS=OFS="\t"} $3=="transcript"||$3=="exon"{sub(/[ ;]*$/,"",$9); $9=$9"; transcript_support_level \"1\";"} {print}'     Yang-v2.annotation.v4.3.6.full.cellranger01.gtf > Yang-v2.cellranger.thirdseq.tsl1.gtf
+# # 核对：transcript+exon 行数应该等于带标签的行数
+awk -F'\t' '$3=="transcript"||$3=="exon"' Yang-v2.cellranger.thirdseq.tsl1.gtf | wc -l
+grep -c 'transcript_support_level "1"' Yang-v2.cellranger.thirdseq.tsl1.gtf
+```
+## 另外根据要求我需要提供一个barcode白名单，但是默认的白名单是2016年10X官方的，所以我选择使用cellranger之后的barcode作为白名单，但是这个工具只能识别tsv所以需要转换一下
+```
+zcat /tmpdata/YangWenyan/yang-v2/count_all_v436/TF260113LMBL/outs/filtered_feature_bc_matrix/barcodes.tsv.gz >   | sed 's/-1$//' > ./TF260113LMBL.barcode.lst
+# 检查前三行，应该都是16bp
+head -3 TF260113LMBL.barcode.lst; awk '{print length($0)}' TF260113LMBL.barcode.lst | sort -u
+```
+# 最后使用是这样的
+```
+/tmpdata/LyuLin/tool/Nanodecoder/Nanodecoder \
+-i TF260113LMBL_10.fastq \
+-t 5 \
+-r /tmpdata/YangWenyan/yang-v2/reference/yang-v2.polish.fa \
+-a /tmpdata/YangWenyan/yang-v2/reference/latest_v4.3.6/Yang-v2.cellranger.thirdseq.tsl1.gtf \
+-w ./TF260113LMBL.barcode.lst
+```
